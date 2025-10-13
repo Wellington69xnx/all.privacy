@@ -5,6 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>
     <link rel="stylesheet" href="/css/output.css">
+    <style>
+        /* Container principal do visualizador (Palco) */
+        #viewer-content-area {
+            position: relative;
+            overflow: hidden; 
+            height: 90vh; 
+            width: 100%;
+            max-width: 1000px; 
+        }
+        
+        /* Contêiner que contém APENAS o conteúdo atual para ser movido */
+        .content-slide-wrapper {
+            position: absolute; /* Permite controlar a posição X com transform */
+            top: 0;
+            left: 0;
+            display: flex;
+            height: 100%;
+            width: 100%; /* Ocupa 100% do palco */
+            transition: transform 0.3s ease-in-out; 
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* O estilo para o contêiner interno do conteúdo (para evitar o resize) */
+        .content-item {
+            width: 100%; 
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Garante que o conteúdo em si respeite o tamanho máximo do item */
+        .content-item > * {
+            max-width: 100%;
+            max-height: 80vh; 
+            object-fit: contain;
+        }
+        
+    </style>
 </head>
 <body class="bg-black text-white min-h-screen font-sans">
     
@@ -17,77 +57,124 @@
             </a>
             <div class="hidden md:flex space-x-8">
                 <a href="/" class="text-gray-300 hover:text-orange-400 transition duration-300">Home</a>
-                <a href="#conteudo" onclick="switchTab('previews')" class="text-gray-300 hover:text-orange-400 transition duration-300">Previews</a>
+                <a 
+                    href="#conteudo" onclick="switchTab('previews')" class="text-gray-300 hover:text-orange-400 transition duration-300">Previews</a>
                 <a href="#conteudo" onclick="switchTab('privado')" class="text-gray-300 hover:text-orange-400 transition duration-300">Conteúdo Privado</a>
+                <% if (user) { %>
+                    <a href="/dashboard" class="text-gray-300 hover:text-orange-400 transition duration-300">Dashboard</a>
+                <% } %>
             </div>
-            <a href="#" class="px-5 py-2 text-sm font-semibold rounded-full bg-orange-600 hover:bg-orange-700 transition duration-300 shadow-md shadow-orange-500/30">
-                Acesso Premium
-            </a>
+            
+            <% if (user) { %>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-400 hidden sm:block">Olá, <%= user.username %></span>
+                    <a href="/logout" class="px-5 py-2 text-sm font-semibold rounded-full bg-red-600 hover:bg-red-700 transition duration-300 shadow-md shadow-red-500/30">
+                        Sair
+                    </a>
+                </div>
+            <% } else { %>
+                <a href="/login" class="px-5 py-2 text-sm font-semibold rounded-full bg-orange-600 hover:bg-orange-700 transition duration-300 shadow-md shadow-orange-500/50">
+                    Acesso Premium / Login
+                </a>
+            <% } %>
         </nav>
     </header>
 
-    <main class="relative bg-gray-950">
-        
-        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent z-10"></div>
-        
-        <div class="h-96 md:h-[500px] w-full bg-cover bg-center bg-gray-800 flex items-center justify-center" 
-             style="background-image: url('URL_DA_IMAGEM_AQUI');">
-             
-            <span class="text-5xl font-extrabold text-white/10">FOTO DE DESTAQUE</span>
-        </div>
+    <main class="relative bg-black">
+        <div class="relative h-[400px] md:h-[500px] w-full">
+            
+            <div class="absolute inset-0 w-full h-full bg-cover bg-center bg-gray-800"
+                 style="background-image: url('<%= actress.coverPhotoUrl %>');">
+            </div>
+            
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent z-10"></div>
+            
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 absolute inset-x-0 bottom-[-3rem] z-20 pb-4 md:pb-10 md:bottom-0">
+                <div class="flex flex-col md:flex-row items-center md:items-end"> 
+                    
+                    <div class="relative w-32 h-32 md:w-48 md:h-48 flex-shrink-0 mb-[-4rem] md:mb-0 md:mr-8">
+                        <img src="<%= actress.profilePhotoUrl %>" 
+                             alt="Foto de perfil de <%= actress.name %>" 
+                             class="rounded-full object-cover w-full h-full border-4 border-orange-500 shadow-xl shadow-orange-500/50">
+                    </div>
 
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-20 -mt-24 md:-mt-32">
-            <div class="flex flex-col justify-between items-start"> 
-                
-                <div class="text-left mb-6 md:mb-0">
-                    <h1 class="text-6xl md:text-8xl font-black tracking-tighter mb-2 leading-none">
-                        <%= actressName %>
-                    </h1>
-                    <p class="text-xl text-gray-400 max-w-lg"><%= bio %></p>
-                    <p class="mt-2 text-sm text-orange-400 font-semibold"><%= contentCount %> Conteúdos Exclusivos</p>
+                    <div class="text-center md:text-left pt-16 md:pt-0"> 
+                       
+                        <h1 class="text-5xl md:text-7xl font-black tracking-tighter mb-1 md:mb-1 leading-none text-white">
+                            <%= actress.name %>
+                        </h1>
+                        <p class="text-lg md:text-xl text-gray-300 max-w-xl"><%= actress.description %></p>
+                        <p class="mt-2 text-sm text-orange-400 font-semibold"><%= contentCount %> Conteúdos Exclusivos</p>
+                    </div>
+                    
                 </div>
-                
-                </div>
+            </div>
         </div>
-
     </main>
 
-    <section id="conteudo" class="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <section id="conteudo" class="container mx-auto px-4 sm:px-6 lg:px-8 py-16 pt-20 md:pt-16"> 
         
         <div id="tab-controls" class="flex border-b border-gray-700 mb-8">
-            <button id="tab-previews" onclick="switchTab('previews')" 
+  
+             <button id="tab-previews" onclick="switchTab('previews')" 
                 class="py-3 px-6 text-lg font-semibold border-b-2 border-orange-500 text-orange-400 transition duration-300 flex items-center">
                 Previews 
-                <span id="badge-previews" class="ml-2 px-3 py-1 text-xs font-bold rounded-full bg-orange-600 text-white leading-none"><%= previewCount %></span>
+                <span id="badge-previews" class="ml-2 px-3 py-1 text-xs font-bold rounded-full bg-orange-600 text-white leading-none"><%= previews.length %></span>
             </button>
+    
             <button id="tab-privado" onclick="switchTab('privado')" 
                 class="py-3 px-6 text-lg font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-300 transition duration-300 ml-4 flex items-center">
                 Conteúdo Privado 
                 <span id="badge-privado" class="ml-2 px-3 py-1 text-xs font-bold rounded-full bg-gray-700 text-white leading-none"><%= privateCount %></span>
             </button>
-        </div>
+       </div>
 
-        <div id="content-previews" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div id="content-previews" class="grid grid-cols-2 lg:grid-cols-3 gap-4">
             
-            <% for (let i = 1; i <= previewCount; i++) { %>
-            <div class="bg-gray-900 rounded-xl overflow-hidden shadow-xl transform hover:scale-[1.02] transition duration-300 cursor-pointer">
-                <div class="h-48 bg-gray-700/50 relative flex items-center justify-center">
-                    <span class="absolute top-3 left-3 px-3 py-1 text-xs font-bold rounded-full bg-orange-600 text-white">PREVIEW</span>
-                    <span class="text-3xl font-extrabold text-white/50">PREVIEW <%= i %></span>
-                </div>
-                <div class="p-4">
-                    <h3 class="text-xl font-semibold mb-1 text-gray-100">Cena de Bastidores <%= i %></h3>
-                    <p class="text-gray-400 text-sm">Uma amostra do que está no acervo exclusivo.</p>
+            <% previews.forEach((content, index) => { %>
+            <div onclick="openViewer(<%= index %>)" class="cursor-pointer">
+                <div class="bg-gray-900 rounded-xl overflow-hidden shadow-xl transform hover:scale-[1.02] transition duration-300 h-full">
+                    
+                    <% 
+                    let displayThumbnailPath = content.thumbnailPath;
+                    // LÓGICA DE CORREÇÃO: Se não há thumbnail, mas é um upload (pode ser foto), usa o urlPath
+                    if (!displayThumbnailPath && content.contentType === 'upload') {
+                        displayThumbnailPath = content.urlPath;
+                    }
+                    %>
+
+                    <% if (displayThumbnailPath) { %>
+                    <div class="h-48 bg-gray-700/50 relative bg-cover bg-center" 
+                         style="background-image: url('<%= displayThumbnailPath %>');">
+                        <span class="absolute top-3 left-3 px-3 py-1 text-xs font-bold rounded-full bg-orange-600 text-white">PREVIEW</span>
+                    </div>
+                    <% } else { %>
+                    <div class="h-48 bg-gray-700/50 relative flex items-center justify-center">
+                        <span class="absolute top-3 left-3 px-3 py-1 text-xs font-bold rounded-full bg-orange-600 text-white">PREVIEW</span>
+                        <span class="text-3xl font-extrabold text-white/50">LINK EXTERNO</span>
+                    </div>
+                    <% } %>
+                    
+                    <div class="p-4">
+                        <h3 class="text-xl font-semibold mb-1 text-gray-100"><%= content.title %></h3>
+                        <p class="text-gray-400 text-sm">
+                            <% if (content.contentType === 'url') { %>
+                                Link externo. Clique para ver.
+                            <% } else { %>
+                                Conteúdo local.
+                            <% } %>
+                        </p>
+                    </div>
                 </div>
             </div>
-            <% } %>
+            <% }) %>
 
         </div>
 
         <div id="content-privado" class="hidden">
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-8 relative">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-4 relative">
                 
-                <div class="absolute inset-0 z-10 flex flex-col items-center justify-center 
+               <div class="absolute inset-0 z-10 flex flex-col items-center justify-center 
                             bg-gradient-to-t from-black/90 to-black/50 backdrop-blur-sm rounded-xl">
                     <h3 class="text-3xl font-bold text-orange-400 mb-4 text-center">Acesso Exclusivo</h3>
                     <p class="text-gray-300 mb-6 text-center max-w-xs">
@@ -98,14 +185,33 @@
                     </a>
                 </div>
 
-                <% for (let i = 1; i <= 6; i++) { %> 
+                <% privateContent.forEach(content => { %> 
                 <div class="bg-gray-900 rounded-xl overflow-hidden shadow-xl opacity-50">
-                    <div class="h-32 sm:h-48 bg-orange-700/50 relative flex items-center justify-center">
-                        <span class="absolute top-2 left-2 px-2 py-1 text-xs font-bold rounded-full bg-red-600 text-white">PRIVADO</span>
-                        <span class="text-2xl sm:text-3xl font-extrabold text-white/50">SECRETO <%= i %></span>
+                    
+                    <% 
+                    let displayThumbnailPath = content.thumbnailPath;
+                    // LÓGICA DE CORREÇÃO: Se não há thumbnail, mas é um upload (pode ser foto), usa o urlPath
+                    if (!displayThumbnailPath && content.contentType === 'upload') {
+                        displayThumbnailPath = content.urlPath;
+                    }
+                    %>
+
+                    <% if (displayThumbnailPath) { %>
+                    <div class="h-32 sm:h-48 relative bg-cover bg-center" 
+                         style="background-image: url('<%= displayThumbnailPath %>');">
+                        <span class="absolute top-2 left-2 px-2 py-1 text-xs font-bold 
+                            rounded-full bg-red-600 text-white">PRIVADO</span>
                     </div>
+                    <% } else { %>
+                    <div class="h-32 sm:h-48 bg-orange-700/50 relative flex items-center justify-center">
+                        <span class="absolute top-2 left-2 px-2 py-1 text-xs font-bold 
+                            rounded-full bg-red-600 text-white">PRIVADO</span>
+                        <span class="text-sm sm:text-lg font-extrabold text-white/50 px-2 text-center"><%= content.title %></span>
+                    </div>
+                    <% } %>
+                    
                 </div>
-                <% } %>
+                <% }) %>
             </div>
         </div>
         
@@ -118,7 +224,192 @@
         </div>
     </footer>
 
+
+    <div id="content-viewer-modal" class="fixed inset-0 bg-black bg-opacity-95 z-[100] hidden flex flex-col items-center justify-center p-4">
+        <button id="close-viewer" class="absolute top-4 right-4 text-white text-3xl z-50 hover:text-orange-500 transition">&times;</button>
+        
+        <button id="prev-content" class="absolute left-4 z-40 text-white text-5xl p-2 hover:text-orange-500 transition hidden md:block">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+        </button>
+        <button id="next-content" class="absolute right-4 z-40 text-white text-5xl p-2 hover:text-orange-500 transition hidden md:block">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+        </button>
+
+        <div id="viewer-content-area" class="relative max-w-5xl w-full h-full max-h-[90vh] flex flex-col justify-center items-center">
+            </div>
+        
+        <div id="viewer-details" class="absolute bottom-4 left-0 right-0 text-center text-white p-4 bg-black bg-opacity-50">
+            <h3 id="viewer-title" class="text-xl font-semibold"></h3>
+            <p id="viewer-type" class="text-sm text-gray-400"></p>
+        </div>
+    </div>
     <script>
+        let allContentData = <%- JSON.stringify(previews) %>; 
+        let currentIndex = 0;
+        const modal = document.getElementById('content-viewer-modal');
+        const contentArea = document.getElementById('viewer-content-area');
+        const viewerTitle = document.getElementById('viewer-title');
+        const viewerType = document.getElementById('viewer-type');
+        const prevButton = document.getElementById('prev-content');
+        const nextButton = document.getElementById('next-content');
+        
+        // Função utilitária para criar o elemento de conteúdo (imagem, vídeo ou iframe)
+        function createContentElement(content) {
+            let contentElement;
+            const itemWrapper = document.createElement('div');
+            itemWrapper.className = 'content-item';
+            
+            if (content.contentType === 'upload') {
+                const isVideo = content.urlPath.match(/\.(mp4|mov|webm|ogg)$/i);
+                
+                if (isVideo) {
+                    contentElement = document.createElement('video');
+                    contentElement.setAttribute('controls', 'true');
+                    contentElement.setAttribute('autoplay', 'true');
+                    contentElement.setAttribute('loop', 'true');
+                    contentElement.setAttribute('muted', 'true');
+                    contentElement.setAttribute('controlsList', 'nodownload'); 
+                } else {
+                    contentElement = document.createElement('img');
+                }
+                
+                contentElement.src = content.urlPath;
+                
+            } else if (content.contentType === 'url') {
+                contentElement = document.createElement('iframe');
+                contentElement.src = content.urlPath;
+                contentElement.className = 'w-full h-full border-0 rounded-lg';
+                contentElement.setAttribute('allowfullscreen', 'true');
+                contentElement.setAttribute('frameborder', '0');
+            }
+
+            if (contentElement) {
+                itemWrapper.appendChild(contentElement);
+            }
+            return itemWrapper;
+        }
+
+        // FUNÇÃO PRINCIPAL: Renderiza o conteúdo (sem animação, usado na abertura e após o slide)
+        function initialRender(index) {
+            currentIndex = index;
+            const content = allContentData[index];
+            
+            contentArea.innerHTML = ''; 
+            contentArea.classList.add('w-full', 'h-full');
+
+            // Cria o wrapper de slide e o elemento de conteúdo
+            const slideWrapper = document.createElement('div');
+            slideWrapper.className = 'content-slide-wrapper';
+            slideWrapper.style.transform = 'translateX(0)'; // Posição inicial
+
+            const contentElement = createContentElement(content);
+            slideWrapper.appendChild(contentElement);
+            contentArea.appendChild(slideWrapper);
+            
+            // Atualiza detalhes
+            viewerTitle.textContent = content.title;
+            viewerType.textContent = `${content.contentType === 'upload' ? 'Upload Local' : 'Link Externo'} (${currentIndex + 1} de ${allContentData.length})`;
+            
+            // Atualiza botões
+            updateNavButtons();
+        }
+
+        // FUNÇÃO DE NAVEGAÇÃO COM ANIMAÇÃO (Melhorada para evitar o resize)
+        function navigateContent(newIndex, direction) {
+            if (newIndex < 0 || newIndex >= allContentData.length || newIndex === currentIndex) return;
+            
+            const oldIndex = currentIndex;
+            const content = allContentData[newIndex];
+            
+            // 1. Encontra o wrapper atual (que tem o conteúdo antigo)
+            const oldWrapper = contentArea.querySelector('.content-slide-wrapper');
+            if (!oldWrapper) return;
+
+            // 2. Cria o novo wrapper (que terá o novo conteúdo)
+            const newWrapper = document.createElement('div');
+            newWrapper.className = 'content-slide-wrapper';
+            const newContentElement = createContentElement(content);
+            newWrapper.appendChild(newContentElement);
+            
+            // 3. Prepara a posição inicial e insere no palco
+            if (direction === 'next') {
+                // Novo conteúdo vem da direita
+                newWrapper.style.transform = 'translateX(100%)';
+                contentArea.appendChild(newWrapper);
+                // Força o reflow antes de transicionar
+                void newWrapper.offsetWidth; 
+                
+                // Transiciona ambos: o antigo sai para a esquerda, o novo entra para o centro
+                oldWrapper.style.transform = 'translateX(-100%)';
+                newWrapper.style.transform = 'translateX(0)';
+                
+            } else if (direction === 'prev') {
+                // Novo conteúdo vem da esquerda
+                newWrapper.style.transform = 'translateX(-100%)';
+                contentArea.insertBefore(newWrapper, oldWrapper);
+                // Força o reflow antes de transicionar
+                void newWrapper.offsetWidth; 
+                
+                // Transiciona ambos: o antigo sai para a direita, o novo entra para o centro
+                oldWrapper.style.transform = 'translateX(100%)';
+                newWrapper.style.transform = 'translateX(0)';
+            }
+            
+            // 4. Atualiza o estado e limpa após a transição
+            setTimeout(() => {
+                currentIndex = newIndex;
+                
+                // Remove o wrapper antigo após a transição
+                if (oldWrapper && oldWrapper.parentNode) {
+                    oldWrapper.parentNode.removeChild(oldWrapper);
+                }
+                
+                // Resetamos o novo wrapper (agora o único) para a estrutura inicial (para ser consistente com initialRender)
+                // Não é estritamente necessário se a estrutura for mantida, mas é mais limpo:
+                newWrapper.style.position = 'absolute';
+                newWrapper.style.transform = 'translateX(0)'; 
+                
+            }, 300); 
+            
+            // 5. Atualiza detalhes e botões
+            viewerTitle.textContent = content.title;
+            viewerType.textContent = `${content.contentType === 'upload' ? 'Upload Local' : 'Link Externo'} (${newIndex + 1} de ${allContentData.length})`;
+            updateNavButtons(newIndex);
+        }
+        
+        function updateNavButtons(newIndex = currentIndex) {
+            prevButton.style.display = (newIndex > 0) ? 'block' : 'none';
+            nextButton.style.display = (newIndex < allContentData.length - 1) ? 'block' : 'none';
+        }
+
+        // Funções de Ação
+        function openViewer(index) {
+            if (allContentData.length === 0) return;
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; 
+            initialRender(index); 
+        }
+
+        function closeViewer() {
+            modal.classList.add('hidden');
+            document.body.style.overflow = ''; 
+            contentArea.innerHTML = ''; 
+        }
+
+        function showNext() {
+            navigateContent(currentIndex + 1, 'next');
+        }
+
+        function showPrev() {
+            navigateContent(currentIndex - 1, 'prev');
+        }
+
+        // --- Funções de Layout (Existentes) ---
+
         function switchTab(tabName, shouldScroll = true) {
             const previewsBtn = document.getElementById('tab-previews');
             const privadoBtn = document.getElementById('tab-privado');
@@ -128,54 +419,45 @@
 
             const previewsContent = document.getElementById('content-previews');
             const privadoContent = document.getElementById('content-privado');
-            
             const contentSection = document.getElementById('conteudo'); 
 
             const ORANGE_BG = 'bg-orange-600';
             const GRAY_BG = 'bg-gray-700';
-
+            
             if (tabName === 'previews') {
-                // ESTILOS DA ABA
                 previewsBtn.classList.add('border-orange-500', 'text-orange-400');
                 previewsBtn.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-300');
                 
                 privadoBtn.classList.remove('border-orange-500', 'text-orange-400');
                 privadoBtn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-300');
                 
-                // ESTILOS DO BADGE
                 previewsBadge.classList.add(ORANGE_BG);
                 previewsBadge.classList.remove(GRAY_BG);
                 
                 privadoBadge.classList.remove(ORANGE_BG);
                 privadoBadge.classList.add(GRAY_BG);
                 
-                // VISIBILIDADE DO CONTEÚDO
                 previewsContent.classList.remove('hidden');
                 privadoContent.classList.add('hidden');
                 
             } else if (tabName === 'privado') {
-                // ESTILOS DA ABA
                 privadoBtn.classList.add('border-orange-500', 'text-orange-400');
                 privadoBtn.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-300');
                 
                 previewsBtn.classList.remove('border-orange-500', 'text-orange-400');
                 previewsBtn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-300');
                 
-                // ESTILOS DO BADGE
                 privadoBadge.classList.add(ORANGE_BG);
                 privadoBadge.classList.remove(GRAY_BG);
                 
                 previewsBadge.classList.remove(ORANGE_BG);
                 previewsBadge.classList.add(GRAY_BG);
                 
-                // VISIBILIDADE DO CONTEÚDO
                 privadoContent.classList.remove('hidden');
                 previewsContent.classList.add('hidden');
             }
             
-            // ROLAGEM AUTOMÁTICA (APENAS SE shouldScroll FOR TRUE)
             if (shouldScroll && contentSection) {
-                // Ao clicar, a rolagem é normal (topo da seção no topo da viewport)
                 contentSection.scrollIntoView({ 
                     behavior: 'smooth', 
                     block: 'start'      
@@ -184,7 +466,7 @@
         }
         
         // ==========================================================
-        // ROLAGEM INICIAL PARA POSICIONAR APENAS AS ABAS NO RODAPÉ DA VIEWPORT (Mobile)
+        // Inicialização e Event Listeners
         // ==========================================================
         document.addEventListener('DOMContentLoaded', () => {
             // 1. Configura a aba 'Previews' sem rolar
@@ -192,18 +474,62 @@
 
             const tabControls = document.getElementById('tab-controls');
             
-            // 2. Verifica se é um dispositivo móvel
+            // 2. Otimização de Rolagem Mobile
             if (window.innerWidth < 768 && tabControls) {
-                
-                // Rola para que o FINAL (block: 'end') do div das abas (#tab-controls) 
-                // fique alinhado com o final da viewport. Isso deve mostrar as abas 
-                // no final da tela, sem descer muito.
                 setTimeout(() => {
                     tabControls.scrollIntoView({ 
                         behavior: 'smooth', 
                         block: 'end' 
                     });
                 }, 100); 
+            }
+            
+            // 3. Listeners do Visualizador de Conteúdo (Modal)
+            if (modal) {
+                document.getElementById('close-viewer').addEventListener('click', closeViewer);
+                prevButton.addEventListener('click', showPrev);
+                nextButton.addEventListener('click', showNext);
+                
+                // Navegação por teclado (setas e ESC)
+                document.addEventListener('keydown', (e) => {
+                    if (modal.classList.contains('hidden')) return;
+                    if (e.key === 'ArrowRight') showNext();
+                    if (e.key === 'ArrowLeft') showPrev();
+                    if (e.key === 'Escape') closeViewer();
+                });
+                
+                // Detecção de Swipe para mobile
+                let startX = 0;
+                let endX = 0;
+                let isSwiping = false;
+
+                contentArea.addEventListener('touchstart', (e) => {
+                    if (!modal.classList.contains('hidden')) {
+                        e.preventDefault(); 
+                    }
+                    startX = e.touches[0].clientX;
+                    isSwiping = true;
+                }, { passive: false });
+
+                contentArea.addEventListener('touchmove', (e) => {
+                    if (!isSwiping) return;
+                    e.preventDefault(); 
+                }, { passive: false });
+
+                contentArea.addEventListener('touchend', (e) => {
+                    if (!isSwiping) return;
+                    endX = e.changedTouches[0].clientX;
+                    const threshold = 50; 
+
+                    if (modal.classList.contains('hidden')) return;
+
+                    if (startX - endX > threshold) {
+                        showNext(); // Swipe para a esquerda (próximo)
+                    } else if (endX - startX > threshold) {
+                        showPrev(); // Swipe para a direita (anterior)
+                    }
+                    isSwiping = false;
+                });
             }
         });
     </script>

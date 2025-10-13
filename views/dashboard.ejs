@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/output.css">
+</head>
+<body class="bg-black text-white min-h-screen font-sans">
+    
+    <header class="sticky top-0 z-50 bg-black/95 backdrop-blur-sm border-b border-orange-500/20">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <a href="/" class="text-3xl font-extrabold tracking-wider">
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-amber-400">
+                    AllPrivacy
+                </span>
+            </a>
+            <div class="hidden md:flex space-x-8">
+                <a href="/" class="text-gray-300 hover:text-orange-400 transition duration-300">Home</a>
+                <a href="/dashboard" class="text-orange-400 font-semibold transition duration-300">Dashboard</a>
+            </div>
+            
+            <% if (user) { %>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-400 hidden sm:block">Olá, <%= user.username %></span>
+                    <a href="/logout" class="px-5 py-2 text-sm font-semibold rounded-full bg-red-600 hover:bg-red-700 transition duration-300 shadow-md shadow-red-500/30">
+                        Sair
+                    </a>
+                </div>
+            <% } else { %>
+                <a href="/login" class="px-5 py-2 text-sm font-semibold rounded-full bg-orange-600 hover:bg-orange-700 transition duration-300 shadow-md shadow-orange-500/50">
+                    Acesso Premium / Login
+                </a>
+            <% } %>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        
+        <div class="bg-gray-900 p-8 rounded-xl shadow-xl border-t-4 border-orange-500">
+            <h1 class="text-4xl font-black mb-2">Bem-vindo(a) à Dashboard!</h1>
+            
+            <% if (user) { %>
+                <p class="text-xl text-gray-300 mb-6">Olá, <span class="text-orange-400 font-semibold"><%= user.username %></span>. Aqui você pode gerenciar sua conta e acessar seus benefícios.</p>
+                
+                <div class="space-y-4">
+                    <p class="text-lg text-gray-200">Seu E-mail: <%= user.email %></p>
+                    <p class="text-lg text-gray-200">Status: 
+                        <% if (user.isPremium) { %>
+                            <span class="px-3 py-1 text-sm font-bold rounded-full bg-green-600 text-white">MEMBRO PREMIUM</span>
+                        <% } else { %>
+                            <span class="px-3 py-1 text-sm font-bold rounded-full bg-yellow-600 text-white">BÁSICO</span>
+                        <% } %>
+                    </p>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-gray-700">
+                    <h2 class="text-2xl font-bold mb-4 text-orange-400">Ações Rápidas</h2>
+                    <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                        <a href="/upgrade" class="px-6 py-3 text-md font-bold rounded-lg bg-orange-600 hover:bg-orange-700 transition shadow-lg shadow-orange-500/50 text-center">
+                            Fazer Upgrade para Premium
+                        </a>
+                        <a href="/settings" class="px-6 py-3 text-md font-bold rounded-lg bg-gray-700 hover:bg-gray-600 transition text-center">
+                            Configurações da Conta
+                        </a>
+                    </div>
+                </div>
+
+            <% } else { %>
+                 <p class="text-xl text-red-400">Você precisa estar logado para acessar este painel.</p>
+                 <a href="/login" class="mt-4 inline-block px-6 py-3 text-md font-bold rounded-lg bg-orange-600 hover:bg-orange-700 transition">
+                    Ir para Login
+                </a>
+            <% } %>
+        </div>
+
+    </main>
+
+    <footer class="bg-gray-900 border-t border-orange-500/20 mt-16 py-8">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-400 text-sm">
+            <p>&copy; 2025 AllPrivacy. Todos os direitos reservados. | Desenvolvido como MVP.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

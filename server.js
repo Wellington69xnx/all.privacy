@@ -5,8 +5,11 @@ const mongoose = require('mongoose');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
-const Actress = require('./models/Actress'); // Modelo da Atriz
-const Content = require('./models/Content'); // Modelo de Conteúdo
+const session = require('express-session'); 
+const crypto = require('crypto');
+const Actress = require('./models/Actress'); 
+const Content = require('./models/Content'); 
+const User = require('./models/User'); 
 const app = express();
 const port = 3000;
 
@@ -20,12 +23,14 @@ const mongooseOptions = {
     useUnifiedTopology: true 
 };
 
+// GARANTIA: Servidor só inicia após a conexão com o DB ser bem-sucedida
 mongoose.connect(dbURI, mongooseOptions)
     .then(() => {
         console.log('[MONGODB] Conexão bem-sucedida ao Atlas.');
+        // INICIALIZAÇÃO DO SERVIDOR HTTP
         app.listen(port, () => {
-            console.log(`[NODE] Servidor rodando em http://localhost:3000`);
-            console.log(`[ADMIN] Acesso em http://localhost:3000/admin/login`);
+            console.log(`[NODE] Servidor rodando em http://localhost:${port}`);
+            console.log(`[ADMIN] Acesso em http://localhost:${port}/admin/login`);
         });
     })
     .catch((err) => console.error('[MONGODB] Erro de conexão. Verifique sua URI, senha e IP na whitelist do Atlas:', err));
@@ -44,6 +49,23 @@ app.set('layout', 'admin/layout');
 // ===================================
 app.use(express.urlencoded({ extended: true })); 
 app.use(express.static('public'));
+
+// Configuração da Sessão
+app.use(session({
+    secret: 'chave_secreta_para_sessao_user_allprivacy', // Mude para uma chave secreta forte
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 1000 * 60 * 60 * 24 } // Sessão dura 24 horas
+}));
+
+// Middleware para injetar dados do usuário/sessão nas views
+const frontEndLayoutData = (req, res, next) => {
+    // Adiciona o objeto user da sessão para que todas as views o acessem
+    res.locals.user = req.session.user || null;
+    next();
+};
+app.use(frontEndLayoutData); // Aplica a todas as rotas
+
 
 // Funções utilitárias (Slugify)
 const slugify = (text) => {
@@ -127,9 +149,20 @@ const renderFrontEnd = (req, res, view, data) => {
     });
 }
 
+// Middleware para checar se o usuário está logado
+const requireAuth = (req, res, next) => {
+    if (req.session.user) {
+        next();
+    } else {
+        res.redirect('/login');
+    }
+};
+
 // ===================================
 // 5. ROTAS DO FRONT-END
 // ===================================
+
+// ROTA HOME (/)
 app.get('/', async (req, res) => {
     try {
         const actresses = await Actress.find().select('name slug profilePhotoUrl coverPhotoUrl').limit(12).sort({ name: 1 });
@@ -140,6 +173,7 @@ app.get('/', async (req, res) => {
         });
     } catch (error) {
         console.error('Erro ao buscar atrizes para o Front-end:', error);
+        // Fallback: Tenta renderizar mesmo que o DB falhe, mas sem dados
         renderFrontEnd(req, res, 'index', {
             title: 'AllPrivacy | O Portal das Atrizes',
             actresses: [] 
@@ -147,15 +181,288 @@ app.get('/', async (req, res) => {
     }
 });
 
-app.get('/atriz/:slug', (req, res) => {
-    renderFrontEnd(req, res, 'actress', {
-        title: `${req.params.slug.replace(/-/g, ' ')} | AllPrivacy`,
-        actressName: req.params.slug.replace(/-/g, ' ').toUpperCase(),
-        bio: "Atriz renomada...",
-        contentCount: 12, 
-        previewCount: 3, 
-        privateCount: 9,
+// 5.1 ROTAS DE AUTENTICAÇÃO
+app.get('/login', (req, res) => {
+    renderFrontEnd(req, res, 'login', { title: 'Login | AllPrivacy', error: null });
+});
+
+app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return renderFrontEnd(req, res, 'login', { title: 'Login | AllPrivacy', error: 'Email ou senha inválidos.' });
+        }
+
+        const isMatch = await user.comparePassword(password);
+
+        if (!isMatch) {
+            return renderFrontEnd(req, res, 'login', { title: 'Login | AllPrivacy', error: 'Email ou senha inválidos.' });
+        }
+
+        // Sucesso: Cria sessão
+        req.session.user = { 
+            _id: user._id, 
+            email: user.email, 
+            username: user.username,
+            isPremium: user.isPremium 
+        };
+        
+        console.log(`\n✅ Usuário logado: ${user.email}`);
+        res.redirect('/dashboard'); 
+
+    } catch (error) {
+        console.error('Erro no login:', error);
+        renderFrontEnd(req, res, 'login', { title: 'Login | AllPrivacy', error: 'Erro interno no servidor.' });
+    }
+});
+
+app.get('/register', (req, res) => {
+    renderFrontEnd(req, res, 'register', { 
+        title: 'Registro | AllPrivacy', 
+        error: null,
+        formData: {} 
     });
+});
+
+app.post('/register', async (req, res) => {
+    const { username, email, password, confirm_password, date_of_birth, age_check } = req.body;
+    
+    // Converte DD/MM/AAAA para DD/MM/AAAA para EJS exibir de volta
+    const dateParts = date_of_birth ? date_of_birth.split('-') : []; // [YYYY, MM, DD]
+    const date_of_birth_display = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : '';
+    
+    // Dados para retornar ao formulário em caso de erro
+    const formData = { username, email, date_of_birth, date_of_birth_display };
+    
+    // Validação 1: Campos obrigatórios e check de idade
+    if (!username || !email || !password || !confirm_password || !date_of_birth || age_check !== 'on') {
+        return renderFrontEnd(req, res, 'register', { title: 'Registro | AllPrivacy', error: 'Preencha todos os campos e confirme a idade.', formData });
+    }
+    
+    // Validação 2: Senhas
+    if (password.length < 8) {
+        return renderFrontEnd(req, res, 'register', { title: 'Registro | AllPrivacy', error: 'A senha deve ter no mínimo 8 caracteres.', formData });
+    }
+    if (password !== confirm_password) {
+        return renderFrontEnd(req, res, 'register', { title: 'Registro | AllPrivacy', error: 'A senha e a confirmação de senha não coincidem.', formData });
+    }
+    
+    // Validação 3: Idade Mínima (simulação de 18 anos)
+    const dob = new Date(date_of_birth);
+    const minAgeDate = new Date();
+    minAgeDate.setFullYear(minAgeDate.getFullYear() - 18);
+    
+    if (dob > minAgeDate) {
+         return renderFrontEnd(req, res, 'register', { title: 'Registro | AllPrivacy', error: 'Você deve ter 18 anos ou mais para se registrar.', formData });
+    }
+    
+
+    try {
+        // 1. Verificar unicidade
+        const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+        if (existingUser) {
+            let errorMessage = 'Erro de unicidade desconhecido.';
+            if (existingUser.username === username) {
+                 errorMessage = 'Nome de usuário indisponível.';
+            } else if (existingUser.email === email) {
+                errorMessage = 'Este e-mail já está em uso.';
+            }
+            return renderFrontEnd(req, res, 'register', { title: 'Registro | AllPrivacy', error: errorMessage, formData });
+        }
+
+
+        // 2. Cria e Salva Novo Usuário
+        const newUser = new User({ 
+            username, 
+            email, 
+            password, 
+            dateOfBirth: dob 
+        });
+        await newUser.save();
+
+        // 3. Cria Sessão
+        req.session.user = { 
+            _id: newUser._id, 
+            email: newUser.email, 
+            username: newUser.username,
+            isPremium: newUser.isPremium 
+        };
+        
+        console.log(`\n✅ Novo usuário registrado: ${newUser.username} (${newUser.email})`);
+        res.redirect('/dashboard'); 
+
+    } catch (error) {
+        console.error('Erro no registro:', error);
+        renderFrontEnd(req, res, 'register', { title: 'Registro | AllPrivacy', error: 'Erro interno no servidor.', formData });
+    }
+});
+
+app.get('/logout', (req, res) => {
+    req.session.destroy(err => {
+        if (err) {
+            console.error('Erro ao encerrar sessão:', err);
+            return res.redirect('/');
+        }
+        console.log(`\n🚪 Usuário deslogado.`);
+        res.redirect('/');
+    });
+});
+
+// 5.2 ROTAS DE RECUPERAÇÃO DE SENHA
+app.get('/forgot-password', (req, res) => {
+    renderFrontEnd(req, res, 'forgot_password', { title: 'Recuperar Senha', error: null, success: null, formData: {} }); 
+});
+
+app.post('/forgot-password', async (req, res) => {
+    const { username, email, date_of_birth } = req.body;
+    const formData = { username, email, date_of_birth };
+    
+    // Converte YYYY-MM-DD para DD/MM/AAAA para EJS exibir de volta
+    const dateParts = date_of_birth ? date_of_birth.split('-') : []; // [YYYY, MM, DD]
+    formData.date_of_birth_display = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : '';
+    
+    // Validação básica dos campos
+    if (!username || !email || !date_of_birth) {
+         return renderFrontEnd(req, res, 'forgot_password', { title: 'Recuperar Senha', error: 'Preencha todos os campos.', success: null, formData });
+    }
+
+    try {
+        // 1. Buscar usuário que corresponda aos 3 campos
+        const user = await User.findOne({ 
+            username: username, 
+            email: email, 
+            dateOfBirth: new Date(date_of_birth) 
+        });
+        
+        if (!user) {
+            console.log(`⚠️ Tentativa de recuperação falhou para user: ${username}`);
+            return renderFrontEnd(req, res, 'forgot_password', { 
+                title: 'Recuperar Senha', 
+                error: 'Dados incorretos. Verifique o Nome de Usuário, E-mail e Data de Nascimento.', 
+                success: null,
+                formData
+            });
+        }
+
+        // 2. Criamos um token temporário que o usuário só verá na URL
+        const token = crypto.randomBytes(20).toString('hex');
+        user.resetPasswordToken = token;
+        user.resetPasswordExpires = Date.now() + 300000; // 5 minutos de validade para o reset imediato
+        await user.save();
+        
+        console.log(`\n🔑 Redirecionando para reset de senha (User: ${user.username})`);
+
+        res.redirect(`/reset-password/${token}`);
+
+    } catch (error) {
+        console.error('Erro na recuperação de senha:', error);
+        return renderFrontEnd(req, res, 'forgot_password', { title: 'Recuperar Senha', error: 'Erro interno no servidor.', success: null, formData });
+    }
+});
+
+// GET: Exibe o formulário de redefinição
+app.get('/reset-password/:token', async (req, res) => {
+    try {
+        const user = await User.findOne({ 
+            resetPasswordToken: req.params.token,
+            resetPasswordExpires: { $gt: Date.now() } // Garante que o token não expirou
+        });
+
+        if (!user) {
+            return renderFrontEnd(req, res, 'message', { title: 'Erro de Redefinição', message: 'Token de redefinição de senha inválido ou expirado.' });
+        }
+        
+        renderFrontEnd(req, res, 'reset_password', { 
+            title: 'Redefinir Senha', 
+            token: req.params.token, 
+            error: null 
+        });
+
+    } catch (error) {
+        console.error('Erro ao buscar token:', error);
+        return renderFrontEnd(req, res, 'message', { title: 'Erro', message: 'Erro interno no servidor ao verificar token.' });
+    }
+});
+
+// POST: Processa a nova senha
+app.post('/reset-password/:token', async (req, res) => {
+    const { password, confirm_password } = req.body;
+
+    if (password.length < 8) {
+        return renderFrontEnd(req, res, 'reset_password', { title: 'Redefinir Senha', token: req.params.token, error: 'A senha deve ter no mínimo 8 caracteres.' });
+    }
+    if (password !== confirm_password) {
+        return renderFrontEnd(req, res, 'reset_password', { title: 'Redefinir Senha', token: req.params.token, error: 'As senhas não coincidem.' });
+    }
+
+    try {
+        const user = await User.findOne({ 
+            resetPasswordToken: req.params.token,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return renderFrontEnd(req, res, 'message', { title: 'Erro de Redefinição', message: 'Token de redefinição de senha inválido ou expirado.' });
+        }
+
+        // 1. Atualiza a senha (o hook pre('save') fará o hash)
+        user.password = password;
+        // 2. Limpa o token e a data de expiração
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        
+        await user.save(); // Salva a nova senha criptografada
+
+        // Redireciona para login com mensagem de sucesso
+        return renderFrontEnd(req, res, 'message', { title: 'Senha Redefinida', message: 'Sua senha foi redefinida com sucesso. Você já pode fazer login.' });
+
+    } catch (error) {
+        console.error('Erro ao redefinir senha:', error);
+        return renderFrontEnd(req, res, 'reset_password', { title: 'Redefinir Senha', token: req.params.token, error: 'Erro interno no servidor.' });
+    }
+});
+
+
+// ROTA: Dashboard do Usuário
+app.get('/dashboard', requireAuth, (req, res) => {
+    renderFrontEnd(req, res, 'dashboard', {
+        title: `Dashboard de ${req.session.user.username}`,
+        user: req.session.user
+    });
+});
+
+// ROTA: Perfil da Atriz (Front-end) 
+app.get('/atriz/:slug', async (req, res) => {
+    const slug = req.params.slug;
+    try {
+        // Busca a atriz pelo slug e popula o array de conteúdo
+        const actress = await Actress.findOne({ slug: slug }).populate('content').lean();
+
+        if (!actress) {
+            // Se a atriz não for encontrada, redireciona para a Home
+            return res.redirect('/'); 
+        }
+
+        // Filtra o conteúdo: Previews (público) e Privado (exclusivo)
+        const previews = actress.content.filter(c => c.accessLevel === 'preview');
+        const privateContent = actress.content.filter(c => c.accessLevel === 'private');
+
+        renderFrontEnd(req, res, 'actress', {
+            title: `${actress.name} | AllPrivacy`,
+            actress: actress, 
+            previews: previews, 
+            privateContent: privateContent, 
+            privateCount: privateContent.length, 
+            contentCount: previews.length + privateContent.length, 
+        });
+
+    } catch (error) {
+        console.error('Erro ao buscar atriz e conteúdo para Front-end:', error);
+        // Em caso de erro, pode redirecionar ou mostrar um erro 500
+        res.status(500).send('Erro interno ao carregar o perfil da atriz.');
+    }
 });
 
 app.get('/sobre', (req, res) => {

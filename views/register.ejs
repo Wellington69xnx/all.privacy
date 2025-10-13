@@ -1,0 +1,353 @@
+// views/register.ejs
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/output.css">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        /* Estilos customizados do Flatpickr para o tema escuro */
+        .flatpickr-calendar {
+            background: #1f2937; /* gray-800 */
+            border-color: #374151; /* gray-700 */
+            color: #f3f4f6; /* gray-100 */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* CORREÇÃO DE CONTRASTE: Cores dos números dos dias */
+        .flatpickr-day {
+            color: #f3f4f6; /* Cor branca/clara para os números */
+        }
+        .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay {
+            color: #6b7280; /* gray-500 para dias de outros meses */
+        }
+        
+        /* Cor dos dias selecionados/hoje/hover */
+        .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange, 
+        .flatpickr-day.selected.inRange, .flatpickr-day.startRange.inRange, 
+        .flatpickr-day.endRange.inRange, .flatpickr-day:hover, 
+        .flatpickr-day.selected:focus, .flatpickr-day.startRange:focus, 
+        .flatpickr-day.endRange:focus, .flatpickr-day.selected.inRange:focus, 
+        .flatpickr-day.startRange.inRange:focus, .flatpickr-day.endRange.inRange:focus, 
+        .flatpickr-day.selected:hover, .flatpickr-day.startRange:hover, 
+        .flatpickr-day.endRange:hover, .flatpickr-day.selected.inRange:hover, 
+        .flatpickr-day.startRange.inRange:hover, .flatpickr-day.endRange.inRange:hover {
+            background: #ea580c; /* orange-600 */
+            border-color: #ea580c;
+            color: #fff; /* Garante que o texto selecionado seja branco */
+        }
+        .flatpickr-day.today:not(.selected) {
+            border-color: #f97316; /* orange-500 */
+        }
+        .flatpickr-current-month .flatpickr-monthTitle, .flatpickr-current-month .flatpickr-year {
+            color: #f97316; /* orange-500 */
+        }
+        /* Cor dos ícones de navegação */
+        .flatpickr-prev-month, .flatpickr-next-month {
+            fill: #f97316;
+        }
+        /* Cor do placeholder para o input */
+        .flatpickr-input::placeholder {
+            color: #9ca3af; /* gray-400 */
+        }
+
+        /* Estilo para garantir que o input se estenda no container flex */
+        .custom-date-input {
+            flex-grow: 1; 
+            border-right: none !important; 
+            border-radius: 0.5rem 0 0 0.5rem !important; 
+        }
+    </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen font-sans flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md bg-gray-900 p-8 md:p-10 rounded-xl shadow-2xl border border-orange-500/20">
+        <h1 class="text-4xl font-black text-center mb-6">
+             <span class="bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-amber-400">
+                Criar Conta
+            </span>
+        </h1>
+
+        <% if (error) { %>
+            <div class="bg-red-900 border border-red-700 text-white p-3 rounded mb-4 text-sm text-center">
+                <%= error %>
+            </div>
+        <% } %>
+
+        <form action="/register" method="POST" id="register-form" class="space-y-4">
+            
+            <div>
+                <label for="username" class="block text-sm font-medium text-gray-300">Nome de Usuário</label>
+                <input type="text" id="username" name="username" required minlength="3"
+                       value="<%= formData.username || '' %>"
+                       class="mt-1 block w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-orange-500 focus:border-orange-500 placeholder-gray-500"
+                       placeholder="SeuNomeUnico">
+            </div>
+
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-300">E-mail</label>
+                <input type="email" id="email" name="email" required 
+                       value="<%= formData.email || '' %>"
+                       class="mt-1 block w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-orange-500 focus:border-orange-500 placeholder-gray-500"
+                       placeholder="seu.email@exemplo.com">
+            </div>
+
+            <div>
+                <label for="date_of_birth_display" class="block text-sm font-medium text-gray-300">Data de Nascimento</label>
+                <div class="mt-1 flex rounded-lg shadow-sm">
+                    <input type="text" id="date_of_birth_display" required 
+                           value="<%= formData.date_of_birth_display || '' %>"
+                           class="block w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white focus:ring-orange-500 focus:border-orange-500 placeholder-gray-500 custom-date-input flatpickr-input"
+                           placeholder="DD/MM/AAAA" maxlength="10" 
+                           oninput="applyDateMask(this); validateAge();">
+                           
+                    <button type="button" id="calendar-icon" 
+                            class="inline-flex items-center px-4 py-3 border border-l-0 border-gray-700 rounded-r-lg bg-gray-800 text-orange-400 hover:bg-gray-700 focus:z-10 focus:outline-none focus:ring-orange-500 focus:border-orange-500 transition duration-150">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5m18 7.5v-7.5" />
+                        </svg>
+                    </button>
+                </div>
+
+                <span id="age-warning" class="mt-2 text-sm text-red-400 hidden"></span>
+                <input type="hidden" id="date_of_birth" name="date_of_birth" value="<%= formData.date_of_birth || '' %>">
+            </div>
+
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-300">Senha (mín. 8 caracteres)</label>
+                <input type="password" id="password" name="password" required minlength="8"
+                       oninput="validatePasswords();"
+                       class="mt-1 block w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-orange-500 focus:border-orange-500 placeholder-gray-500"
+                       placeholder="••••••••">
+            </div>
+
+            <div>
+                <label for="confirm_password" class="block text-sm font-medium text-gray-300">Confirmação de Senha</label>
+                <input type="password" id="confirm_password" name="confirm_password" required minlength="8"
+                       oninput="validatePasswords();"
+                       class="mt-1 block w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-orange-500 focus:border-orange-500 placeholder-gray-500"
+                       placeholder="••••••••">
+                <span id="password-match-warning" class="mt-2 text-sm text-red-400 hidden">As senhas não coincidem.</span>
+            </div>
+
+            <div class="pt-2 flex items-start">
+                <div class="flex items-center h-5">
+                    <input id="age_check" name="age_check" type="checkbox" required
+                           class="focus:ring-orange-500 h-4 w-4 text-orange-600 border-gray-700 rounded bg-gray-800">
+                </div>
+                <div class="ml-3 text-sm">
+                    <label for="age_check" class="font-medium text-gray-300">Eu confirmo que tenho 18 anos ou mais.</label>
+                </div>
+            </div>
+
+            <button type="submit" id="register-button"
+                    class="w-full py-3 px-4 text-lg font-bold rounded-lg bg-orange-600 hover:bg-orange-700 transition duration-300 shadow-md shadow-orange-500/50">
+                Registrar
+            </button>
+        </form>
+
+        <div class="mt-6 text-center">
+            <p class="text-sm text-gray-400">
+                Já tem conta? 
+                <a href="/login" class="font-semibold text-orange-400 hover:text-orange-300 transition">
+                    Faça Login
+                </a>
+            </p>
+            <p class="mt-4 text-xs text-gray-500">
+                <a href="/" class="hover:text-gray-300 transition">
+                    Voltar para Home
+                </a>
+            </p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script> <script>
+        const MIN_AGE = 18;
+        const registerButton = document.getElementById('register-button');
+        const ageWarning = document.getElementById('age-warning');
+        const dateDisplay = document.getElementById('date_of_birth_display');
+        const dateHidden = document.getElementById('date_of_birth');
+        const calendarIcon = document.getElementById('calendar-icon');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirm_password');
+        const passwordMatchWarning = document.getElementById('password-match-warning');
+        
+        let flatpickrInstance;
+
+        // Função de utilidade: aplica máscara
+        function applyDateMask(input) {
+            let value = input.value.replace(/\D/g, "");
+            let formattedValue = '';
+            if (value.length > 0) formattedValue += value.substring(0, 2);
+            if (value.length > 2) formattedValue += '/' + value.substring(2, 4);
+            if (value.length > 4) formattedValue += '/' + value.substring(4, 8);
+            input.value = formattedValue;
+        }
+
+        // Função de utilidade: parsing e formatação
+        function parseAndFormatDate(dateValue) {
+            const dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+            const match = dateValue.match(dateRegex);
+            
+            if (!match) return { dateObject: null, dateString: null };
+
+            const day = parseInt(match[1], 10);
+            const month = parseInt(match[2], 10);
+            const year = parseInt(match[3], 10);
+            
+            // Cria a data usando o formato YYYY, MM-1, DD (correto para JS Date)
+            const dateObject = new Date(year, month - 1, day);
+            const dateString = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+            
+            // Validação de data real (ex: 30/02)
+            if (dateObject.getFullYear() !== year || dateObject.getMonth() !== month - 1 || dateObject.getDate() !== day) {
+                 return { dateObject: null, dateString: null };
+            }
+
+            return { dateObject, dateString };
+        }
+        
+        // FUNÇÃO DE VALIDAÇÃO DE IDADE E CONTROLE DO BOTÃO
+        function validateAge() {
+            const dateValue = dateDisplay.value;
+            
+            ageWarning.classList.add('hidden');
+            dateHidden.value = ''; // Limpa o valor do backend
+
+            if (dateValue.length === 10) {
+                const { dateObject, dateString } = parseAndFormatDate(dateValue);
+
+                if (!dateObject) {
+                    ageWarning.textContent = 'Data inválida. Use DD/MM/AAAA e certifique-se que é uma data real.';
+                    ageWarning.classList.remove('hidden');
+                } else {
+                    const today = new Date();
+                    
+                    if (dateObject > today) {
+                        ageWarning.textContent = 'A data de nascimento não pode ser futura.';
+                        ageWarning.classList.remove('hidden');
+                    } else {
+                        let age = today.getFullYear() - dateObject.getFullYear();
+                        const m = today.getMonth() - dateObject.getMonth();
+                        
+                        if (m < 0 || (m === 0 && today.getDate() < dateObject.getDate())) {
+                            age--;
+                        }
+                        
+                        if (age < MIN_AGE) {
+                            ageWarning.textContent = `Você deve ter ${MIN_AGE} anos ou mais para se registrar (Idade atual: ${age}).`;
+                            ageWarning.classList.remove('hidden');
+                        } else {
+                            dateHidden.value = dateString; // Define o valor AAAA-MM-DD para o backend
+                        }
+                    }
+                }
+            }
+
+            // Chama a validação mestre para controlar o botão
+            updateRegistrationButtonState();
+        }
+        
+        // FUNÇÃO DE VALIDAÇÃO DE SENHAS (EM TEMPO REAL)
+        function validatePasswords() {
+            const passwordValue = passwordInput.value;
+            const confirmPasswordValue = confirmPasswordInput.value;
+            
+            passwordMatchWarning.classList.add('hidden');
+            
+            if (passwordValue.length > 0 && confirmPasswordValue.length > 0 && passwordValue !== confirmPasswordValue) {
+                passwordMatchWarning.textContent = 'As senhas não coincidem.';
+                passwordMatchWarning.classList.remove('hidden');
+            } else if (passwordValue.length >= 8 && confirmPasswordValue.length >= 8 && passwordValue !== confirmPasswordValue) {
+                passwordMatchWarning.textContent = 'As senhas não coincidem.';
+                passwordMatchWarning.classList.remove('hidden');
+            }
+
+            // Chama a validação mestre
+            updateRegistrationButtonState();
+        }
+
+        // FUNÇÃO MESTRE DE CONTROLE DO BOTÃO
+        function updateRegistrationButtonState() {
+            const isAgeValid = ageWarning.classList.contains('hidden') && dateHidden.value.length === 10;
+            const isPasswordMatch = passwordMatchWarning.classList.contains('hidden') && passwordInput.value === confirmPasswordInput.value;
+            const isPasswordLongEnough = passwordInput.value.length >= 8 && confirmPasswordInput.value.length >= 8;
+            const isCheckboxChecked = document.getElementById('age_check').checked;
+
+            const isAllRequiredFilled = document.getElementById('username').value.length > 0 && 
+                                       document.getElementById('email').value.length > 0 && 
+                                       isAgeValid && 
+                                       isPasswordMatch && 
+                                       isPasswordLongEnough && 
+                                       isCheckboxChecked;
+
+            if (isAllRequiredFilled) {
+                 registerButton.disabled = false;
+                 registerButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                registerButton.disabled = true;
+                registerButton.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        // -----------------------------------------------------------------
+        // 1. Inicializa Flatpickr
+        // -----------------------------------------------------------------
+        flatpickrInstance = flatpickr(dateDisplay, {
+            dateFormat: "d/m/Y", // Formato de exibição (user)
+            altFormat: "Y-m-d", // Formato interno (backend)
+            altInput: false, 
+            locale: "pt", 
+            maxDate: "today", 
+            disableMobile: true,
+            
+            onChange: function(selectedDates, dateStr, instance) {
+                 validateAge();
+            },
+            onReady: function(selectedDates, dateStr, instance) {
+                calendarIcon.addEventListener('click', function() {
+                    flatpickrInstance.open();
+                });
+                
+                // Event listener para o checkbox
+                document.getElementById('age_check').addEventListener('change', updateRegistrationButtonState);
+
+                // Inicializa a validação com os dados do formData se existirem
+                if (dateDisplay.value) {
+                    validateAge();
+                } 
+                if (passwordInput.value || confirmPasswordInput.value) {
+                    validatePasswords();
+                }
+                updateRegistrationButtonState(); 
+            }
+        });
+        
+        // Inicialmente desativa o botão até que a data seja inserida/validada
+        registerButton.disabled = true;
+        registerButton.classList.add('opacity-50', 'cursor-not-allowed');
+
+        // -----------------------------------------------------------------
+        // 2. Validação final no Submit
+        // -----------------------------------------------------------------
+        document.getElementById('register-form').addEventListener('submit', function(e) {
+            
+            // Re-validação final no cliente
+            validateAge(); 
+            validatePasswords();
+            updateRegistrationButtonState();
+            
+            if (registerButton.disabled || !dateHidden.value) {
+                e.preventDefault();
+                alert('O registro não pode ser efetuado. Por favor, corrija os erros de validação.');
+                return;
+            }
+            // Se chegou até aqui, o formulário é enviado.
+        });
+    </script>
+</body>
+</html>

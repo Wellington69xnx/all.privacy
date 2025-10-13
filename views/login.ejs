@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/output.css">
+</head>
+<body class="bg-gray-950 text-white min-h-screen font-sans flex items-center justify-center">
+
+    <div class="w-full max-w-md bg-gray-900 p-8 md:p-10 rounded-xl shadow-2xl border border-orange-500/20">
+        <h1 class="text-4xl font-black text-center mb-6">
+             <span class="bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-amber-400">
+                Acesse sua Conta
+            </span>
+        </h1>
+
+        <% if (error) { %>
+            <div class="bg-red-900 border border-red-700 text-white p-3 rounded mb-4 text-sm text-center">
+                <%= error %>
+            </div>
+        <% } %>
+
+        <form action="/login" method="POST" class="space-y-6">
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-300">E-mail</label>
+                <input type="email" id="email" name="email" required 
+                       class="mt-1 block w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-orange-500 focus:border-orange-500 placeholder-gray-500"
+                       placeholder="seu.email@exemplo.com">
+            </div>
+
+            <div>
+                <div class="flex items-center justify-between">
+                    <label for="password" class="block text-sm font-medium text-gray-300">Senha</label>
+                    <a href="/forgot-password" class="text-xs font-medium text-orange-400 hover:text-orange-300 transition">
+                        Esqueceu a senha?
+                    </a>
+                </div>
+                
+                <input type="password" id="password" name="password" required 
+                       class="mt-1 block w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-orange-500 focus:border-orange-500 placeholder-gray-500"
+                       placeholder="••••••••">
+            </div>
+
+            <button type="submit" 
+                    class="w-full py-3 px-4 text-lg font-bold rounded-lg bg-orange-600 hover:bg-orange-700 transition duration-300 shadow-md shadow-orange-500/50">
+                Entrar
+            </button>
+        </form>
+
+        <div class="mt-6 text-center">
+            <p class="text-sm text-gray-400">
+                Não tem conta? 
+                <a href="/register" class="font-semibold text-orange-400 hover:text-orange-300 transition">
+                    Cadastre-se aqui
+                </a>
+            </p>
+            <p class="mt-2 text-xs text-gray-500">
+                <a href="/" class="hover:text-gray-300 transition">
+                    Voltar para Home
+                </a>
+            </p>
+        </div>
+    </div>
+
+</body>
+</html>
