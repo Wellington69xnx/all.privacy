@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | AllPrivacy</title>
+    <link rel="stylesheet" href="/css/output.css">
+    <style>
+        /* Estilo para garantir que o contêiner do login ocupe o centro da tela */
+        .login-center {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white font-sans">
+
+    <div class="login-center">
+        <div class="bg-gray-800 p-8 md:p-10 rounded-xl shadow-2xl w-full max-w-md 
+                    border-t-4 border-orange-500 transform hover:shadow-orange-900/40 transition duration-300">
+            
+            <h1 class="text-3xl font-bold mb-2 text-center">
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-300">
+                    AllPrivacy
+                </span>
+                <span class="text-gray-400">Admin</span>
+            </h1>
+            <p class="text-center text-gray-400 mb-8">Acesso Restrito ao Painel de Controle</p>
+
+            <form action="/admin/dashboard" method="GET"> 
+                
+                <div class="mb-5">
+                    <label for="email" class="block text-sm font-medium text-gray-300 mb-1">E-mail</label>
+                    <input type="email" id="email" name="email" required 
+                           class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg 
+                                  focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 
+                                  placeholder-gray-500 text-white">
+                </div>
+
+                <div class="mb-6">
+                    <label for="password" class="block text-sm font-medium text-gray-300 mb-1">Senha</label>
+                    <input type="password" id="password" name="password" required 
+                           class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg 
+                                  focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 
+                                  placeholder-gray-500 text-white">
+                </div>
+
+                <button type="submit" 
+                        class="w-full px-4 py-3 text-lg font-semibold rounded-lg transition-all duration-300 
+                               bg-orange-600 hover:bg-orange-700 shadow-lg shadow-orange-500/50">
+                    Acessar Painel
+                </button>
+
+            </form>
+
+            <p class="mt-8 text-center text-sm text-gray-500">
+                &copy; 2025 AllPrivacy Admin.
+            </p>
+        </div>
+    </div>
+
+</body>
+</html>

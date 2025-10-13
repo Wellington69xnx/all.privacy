@@ -1,0 +1,233 @@
+<div class="max-w-4xl mx-auto">
+    <h2 class="text-3xl font-bold text-gray-200 mb-6">
+        Adicionar Novo Conteúdo a: <span class="text-orange-400"><%= actress.name %></span>
+    </h2>
+
+    <a href="/admin/actresses/<%= actress.slug %>/videos" class="text-gray-400 hover:text-orange-400 transition mb-4 inline-block">
+        ← Voltar ao Gerenciamento de Conteúdo
+    </a>
+
+    <div class="bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg border border-gray-700">
+        
+        <form id="contentForm" action="/admin/actresses/<%= actress.slug %>/content/add" 
+              method="POST" 
+              enctype="multipart/form-data" 
+              class="space-y-6">
+
+            <div>
+                <h3 class="text-xl font-semibold text-orange-400 border-b border-orange-700/50 pb-2 mb-4">Acesso e Tipo</h3>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Nível de Acesso</label>
+                <div class="flex space-x-6">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="accessLevel" value="preview" checked class="form-radio text-green-500 bg-gray-700 border-gray-600 focus:ring-green-500">
+                        <span class="ml-2 text-gray-300">Preview (Público)</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="accessLevel" value="private" class="form-radio text-red-500 bg-gray-700 border-gray-600 focus:ring-red-500">
+                        <span class="ml-2 text-gray-300">Privado (Exclusivo)</span>
+                    </label>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Método de Conteúdo</label>
+                <div class="flex space-x-6" id="contentTypeRadios">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="contentType" value="url" checked class="form-radio text-blue-500 bg-gray-700 border-gray-600 focus:ring-blue-500">
+                        <span class="ml-2 text-gray-300">URL (Link Externo)</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="contentType" value="upload" class="form-radio text-blue-500 bg-gray-700 border-gray-600 focus:ring-blue-500">
+                        <span class="ml-2 text-gray-300">Upload (Arquivo Local)</span>
+                    </label>
+                </div>
+            </div>
+
+            <div id="contentFields" class="space-y-4">
+                
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-300 mb-2">Título do Conteúdo</label>
+                    <input type="text" id="title" name="title" placeholder="Ex: Ensaio Exclusivo de Verão" required
+                           class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-orange-500 focus:border-orange-500 text-white placeholder-gray-400">
+                </div>
+                
+                <div id="urlField">
+                    <label for="urlPath" class="block text-sm font-medium text-gray-300 mb-2">URL do Conteúdo (YouTube, Vimeo, etc.)</label>
+                    <input type="url" id="urlPath" name="urlPath" placeholder="https://youtube.com/watch?v=..." 
+                           class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-orange-500 focus:border-orange-500 text-white placeholder-gray-400">
+                </div>
+
+                <div id="uploadField" class="hidden space-y-4">
+                    
+                    <div>
+                        <label for="files" class="block text-sm font-medium text-gray-300 mb-2">1. Arquivos (Vídeos ou Imagens)</label>
+                        <input type="file" id="files" name="files" multiple accept="video/*,image/*"
+                               class="w-full text-sm text-gray-400
+                                    file:mr-4 file:py-2 file:px-4
+                                    file:rounded-full file:border-0
+                                    file:text-sm file:font-semibold
+                                    file:bg-orange-500 file:text-white
+                                    hover:file:bg-orange-600
+                                    transition duration-150">
+                        <p class="text-xs text-gray-500 mt-1">Selecione um ou múltiplos arquivos. O título será aplicado a todos.</p>
+                    </div>
+
+                    <div id="thumbnail-capture-area" class="hidden p-4 border border-yellow-600 rounded-lg bg-yellow-900/20 space-y-3">
+                        <h4 class="text-lg font-semibold text-yellow-400">2. Capturar Thumbnail do Vídeo</h4>
+                        <p class="text-sm text-yellow-300">Selecione o vídeo principal acima e use o player abaixo para pausar no frame desejado. O thumbnail será anexado automaticamente ao formulário.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <video id="video-player" controls class="w-full rounded-md shadow-lg" style="max-height: 250px;"></video>
+                            </div>
+                            <div class="flex flex-col items-center justify-center space-y-2">
+                                <button type="button" id="capture-button" disabled
+                                        class="w-full px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 transition">
+                                    Capturar Frame Atual
+                                </button>
+                                
+                                <canvas id="video-canvas" class="hidden"></canvas>
+                                <img id="thumbnail-preview" class="w-full rounded-md border-2 border-gray-600 object-contain" src="/img/default-video-thumb.jpg" alt="Preview Thumbnail" style="max-height: 200px;">
+                                <p class="text-xs text-gray-400" id="capture-status">Nenhum frame capturado.</p>
+                            </div>
+                        </div>
+                        
+                        <input type="file" id="thumbnail-file-input" name="thumbnail_file" class="hidden">
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-700">
+                <a href="/admin/actresses/<%= actress.slug %>/videos" class="px-5 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition duration-200 font-semibold">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-5 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition duration-200 font-semibold shadow-lg">
+                    Salvar Conteúdo
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const contentTypeRadios = document.getElementById('contentTypeRadios');
+        const urlField = document.getElementById('urlField');
+        const uploadField = document.getElementById('uploadField');
+        const urlInput = document.getElementById('urlPath');
+        const fileInput = document.getElementById('files');
+        
+        // Elementos de Captura de Thumbnail
+        const captureArea = document.getElementById('thumbnail-capture-area');
+        const videoPlayer = document.getElementById('video-player');
+        const videoCanvas = document.getElementById('video-canvas');
+        const thumbnailPreview = document.getElementById('thumbnail-preview');
+        const captureButton = document.getElementById('capture-button');
+        const thumbnailFileInput = document.getElementById('thumbnail-file-input');
+        const captureStatus = document.getElementById('capture-status');
+        
+        const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+
+        // Função para alternar visibilidade e validação
+        const toggleFields = (type) => {
+            const isUpload = type === 'upload';
+
+            urlField.classList.toggle('hidden', isUpload);
+            uploadField.classList.toggle('hidden', !isUpload);
+
+            // Gerencia validação e limpeza
+            urlInput.toggleAttribute('required', !isUpload);
+            urlInput.value = isUpload ? '' : urlInput.value;
+
+            fileInput.toggleAttribute('required', isUpload);
+            if (!isUpload) {
+                fileInput.value = '';
+                captureArea.classList.add('hidden');
+            }
+        };
+
+        // Event listener para os botões de rádio
+        contentTypeRadios.addEventListener('change', (event) => {
+            if (event.target.name === 'contentType') {
+                toggleFields(event.target.value);
+            }
+        });
+
+        // Lógica de Captura de Frame
+        fileInput.addEventListener('change', (event) => {
+            const files = event.target.files;
+            
+            // Lógica para detectar se o primeiro arquivo é um vídeo
+            if (files.length > 0) {
+                const file = files[0];
+                const fileName = file.name.toLowerCase();
+                const isVideo = !IMAGE_EXTENSIONS.some(ext => fileName.endsWith(ext));
+
+                if (isVideo && file.type.startsWith('video/')) {
+                    // 1. Mostra a área de captura
+                    captureArea.classList.remove('hidden');
+                    captureButton.disabled = false;
+                    captureStatus.textContent = 'Carregando vídeo...';
+
+                    // 2. Carrega o vídeo no player
+                    const videoUrl = URL.createObjectURL(file);
+                    videoPlayer.src = videoUrl;
+                    videoPlayer.load();
+
+                    videoPlayer.onloadeddata = () => {
+                        captureStatus.textContent = 'Vídeo pronto. Pause no frame desejado e clique em "Capturar Frame".';
+                    };
+                    
+                } else {
+                    // Se não for vídeo, esconde a área de captura e limpa o player
+                    captureArea.classList.add('hidden');
+                    videoPlayer.src = '';
+                    thumbnailFileInput.value = '';
+                }
+            } else {
+                captureArea.classList.add('hidden');
+                videoPlayer.src = '';
+            }
+        });
+
+        captureButton.addEventListener('click', () => {
+            const video = videoPlayer;
+            const canvas = videoCanvas;
+            const context = canvas.getContext('2d');
+            
+            // Define o tamanho do canvas para o tamanho do vídeo
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // Desenha o frame atual do vídeo no canvas
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // 1. Converte o canvas para um Blob (imagem)
+            canvas.toBlob((blob) => {
+                
+                // 2. Cria um objeto File a partir do Blob
+                const thumbnailFile = new File([blob], `thumbnail-${Date.now()}.jpeg`, {
+                    type: 'image/jpeg',
+                    lastModified: Date.now()
+                });
+
+                // 3. Define o File no input escondido para envio
+                // NOTE: Precisamos usar um DataTransfer para injetar o File no Input,
+                // mas para simplificar o MVP, vamos apenas garantir que o form submeta
+                // o input file escondido.
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(thumbnailFile);
+                thumbnailFileInput.files = dataTransfer.files;
+
+                // 4. Exibe o preview
+                thumbnailPreview.src = URL.createObjectURL(thumbnailFile);
+                captureStatus.textContent = 'Frame capturado e pronto para envio!';
+
+            }, 'image/jpeg', 0.9); // Formato JPEG com qualidade 90%
+        });
+
+        // Inicialização
+        toggleFields(document.querySelector('input[name="contentType"]:checked').value);
+    });
+</script>

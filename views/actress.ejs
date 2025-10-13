@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/output.css">
+</head>
+<body class="bg-black text-white min-h-screen font-sans">
+    
+    <header class="sticky top-0 z-50 bg-black/95 backdrop-blur-sm border-b border-orange-500/20">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <a href="/" class="text-3xl font-extrabold tracking-wider">
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-amber-400">
+                    AllPrivacy
+                </span>
+            </a>
+            <div class="hidden md:flex space-x-8">
+                <a href="/" class="text-gray-300 hover:text-orange-400 transition duration-300">Home</a>
+                <a href="#conteudo" onclick="switchTab('previews')" class="text-gray-300 hover:text-orange-400 transition duration-300">Previews</a>
+                <a href="#conteudo" onclick="switchTab('privado')" class="text-gray-300 hover:text-orange-400 transition duration-300">Conteúdo Privado</a>
+            </div>
+            <a href="#" class="px-5 py-2 text-sm font-semibold rounded-full bg-orange-600 hover:bg-orange-700 transition duration-300 shadow-md shadow-orange-500/30">
+                Acesso Premium
+            </a>
+        </nav>
+    </header>
+
+    <main class="relative bg-gray-950">
+        
+        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent z-10"></div>
+        
+        <div class="h-96 md:h-[500px] w-full bg-cover bg-center bg-gray-800 flex items-center justify-center" 
+             style="background-image: url('URL_DA_IMAGEM_AQUI');">
+             
+            <span class="text-5xl font-extrabold text-white/10">FOTO DE DESTAQUE</span>
+        </div>
+
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-20 -mt-24 md:-mt-32">
+            <div class="flex flex-col justify-between items-start"> 
+                
+                <div class="text-left mb-6 md:mb-0">
+                    <h1 class="text-6xl md:text-8xl font-black tracking-tighter mb-2 leading-none">
+                        <%= actressName %>
+                    </h1>
+                    <p class="text-xl text-gray-400 max-w-lg"><%= bio %></p>
+                    <p class="mt-2 text-sm text-orange-400 font-semibold"><%= contentCount %> Conteúdos Exclusivos</p>
+                </div>
+                
+                </div>
+        </div>
+
+    </main>
+
+    <section id="conteudo" class="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        
+        <div id="tab-controls" class="flex border-b border-gray-700 mb-8">
+            <button id="tab-previews" onclick="switchTab('previews')" 
+                class="py-3 px-6 text-lg font-semibold border-b-2 border-orange-500 text-orange-400 transition duration-300 flex items-center">
+                Previews 
+                <span id="badge-previews" class="ml-2 px-3 py-1 text-xs font-bold rounded-full bg-orange-600 text-white leading-none"><%= previewCount %></span>
+            </button>
+            <button id="tab-privado" onclick="switchTab('privado')" 
+                class="py-3 px-6 text-lg font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-300 transition duration-300 ml-4 flex items-center">
+                Conteúdo Privado 
+                <span id="badge-privado" class="ml-2 px-3 py-1 text-xs font-bold rounded-full bg-gray-700 text-white leading-none"><%= privateCount %></span>
+            </button>
+        </div>
+
+        <div id="content-previews" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            
+            <% for (let i = 1; i <= previewCount; i++) { %>
+            <div class="bg-gray-900 rounded-xl overflow-hidden shadow-xl transform hover:scale-[1.02] transition duration-300 cursor-pointer">
+                <div class="h-48 bg-gray-700/50 relative flex items-center justify-center">
+                    <span class="absolute top-3 left-3 px-3 py-1 text-xs font-bold rounded-full bg-orange-600 text-white">PREVIEW</span>
+                    <span class="text-3xl font-extrabold text-white/50">PREVIEW <%= i %></span>
+                </div>
+                <div class="p-4">
+                    <h3 class="text-xl font-semibold mb-1 text-gray-100">Cena de Bastidores <%= i %></h3>
+                    <p class="text-gray-400 text-sm">Uma amostra do que está no acervo exclusivo.</p>
+                </div>
+            </div>
+            <% } %>
+
+        </div>
+
+        <div id="content-privado" class="hidden">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-8 relative">
+                
+                <div class="absolute inset-0 z-10 flex flex-col items-center justify-center 
+                            bg-gradient-to-t from-black/90 to-black/50 backdrop-blur-sm rounded-xl">
+                    <h3 class="text-3xl font-bold text-orange-400 mb-4 text-center">Acesso Exclusivo</h3>
+                    <p class="text-gray-300 mb-6 text-center max-w-xs">
+                        Este conteúdo está reservado apenas para membros premium.
+                    </p>
+                    <a href="#" class="px-8 py-3 text-md font-bold rounded-lg bg-orange-600 hover:bg-orange-700 transition shadow-lg shadow-orange-500/50">
+                        Desbloquear Agora
+                    </a>
+                </div>
+
+                <% for (let i = 1; i <= 6; i++) { %> 
+                <div class="bg-gray-900 rounded-xl overflow-hidden shadow-xl opacity-50">
+                    <div class="h-32 sm:h-48 bg-orange-700/50 relative flex items-center justify-center">
+                        <span class="absolute top-2 left-2 px-2 py-1 text-xs font-bold rounded-full bg-red-600 text-white">PRIVADO</span>
+                        <span class="text-2xl sm:text-3xl font-extrabold text-white/50">SECRETO <%= i %></span>
+                    </div>
+                </div>
+                <% } %>
+            </div>
+        </div>
+        
+    </section>
+
+
+    <footer class="bg-gray-900 border-t border-orange-500/20 mt-16 py-8">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-400 text-sm">
+            <p>&copy; 2025 AllPrivacy. Todos os direitos reservados. | Desenvolvido como MVP.</p>
+        </div>
+    </footer>
+
+    <script>
+        function switchTab(tabName, shouldScroll = true) {
+            const previewsBtn = document.getElementById('tab-previews');
+            const privadoBtn = document.getElementById('tab-privado');
+            
+            const previewsBadge = document.getElementById('badge-previews');
+            const privadoBadge = document.getElementById('badge-privado');
+
+            const previewsContent = document.getElementById('content-previews');
+            const privadoContent = document.getElementById('content-privado');
+            
+            const contentSection = document.getElementById('conteudo'); 
+
+            const ORANGE_BG = 'bg-orange-600';
+            const GRAY_BG = 'bg-gray-700';
+
+            if (tabName === 'previews') {
+                // ESTILOS DA ABA
+                previewsBtn.classList.add('border-orange-500', 'text-orange-400');
+                previewsBtn.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-300');
+                
+                privadoBtn.classList.remove('border-orange-500', 'text-orange-400');
+                privadoBtn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-300');
+                
+                // ESTILOS DO BADGE
+                previewsBadge.classList.add(ORANGE_BG);
+                previewsBadge.classList.remove(GRAY_BG);
+                
+                privadoBadge.classList.remove(ORANGE_BG);
+                privadoBadge.classList.add(GRAY_BG);
+                
+                // VISIBILIDADE DO CONTEÚDO
+                previewsContent.classList.remove('hidden');
+                privadoContent.classList.add('hidden');
+                
+            } else if (tabName === 'privado') {
+                // ESTILOS DA ABA
+                privadoBtn.classList.add('border-orange-500', 'text-orange-400');
+                privadoBtn.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-300');
+                
+                previewsBtn.classList.remove('border-orange-500', 'text-orange-400');
+                previewsBtn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-300');
+                
+                // ESTILOS DO BADGE
+                privadoBadge.classList.add(ORANGE_BG);
+                privadoBadge.classList.remove(GRAY_BG);
+                
+                previewsBadge.classList.remove(ORANGE_BG);
+                previewsBadge.classList.add(GRAY_BG);
+                
+                // VISIBILIDADE DO CONTEÚDO
+                privadoContent.classList.remove('hidden');
+                previewsContent.classList.add('hidden');
+            }
+            
+            // ROLAGEM AUTOMÁTICA (APENAS SE shouldScroll FOR TRUE)
+            if (shouldScroll && contentSection) {
+                // Ao clicar, a rolagem é normal (topo da seção no topo da viewport)
+                contentSection.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start'      
+                });
+            }
+        }
+        
+        // ==========================================================
+        // ROLAGEM INICIAL PARA POSICIONAR APENAS AS ABAS NO RODAPÉ DA VIEWPORT (Mobile)
+        // ==========================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Configura a aba 'Previews' sem rolar
+            switchTab('previews', false);
+
+            const tabControls = document.getElementById('tab-controls');
+            
+            // 2. Verifica se é um dispositivo móvel
+            if (window.innerWidth < 768 && tabControls) {
+                
+                // Rola para que o FINAL (block: 'end') do div das abas (#tab-controls) 
+                // fique alinhado com o final da viewport. Isso deve mostrar as abas 
+                // no final da tela, sem descer muito.
+                setTimeout(() => {
+                    tabControls.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'end' 
+                    });
+                }, 100); 
+            }
+        });
+    </script>
+    
+</body>
+</html>
