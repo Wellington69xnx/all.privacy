@@ -8,46 +8,21 @@
 </head>
 <body class="bg-black text-white min-h-screen font-sans m-0 p-0 overscroll-y-none">
     
-<header class="sticky top-0 z-50 bg-black/95 backdrop-blur-sm border-b border-orange-500/20">
-        <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <a href="/" class="text-3xl font-extrabold tracking-wider">
-                <span class="bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-amber-400">
-                    AllPrivacy
-                </span>
-            </a>
-            <div class="hidden md:flex space-x-8">
-                <a href="/" class="text-orange-400 font-semibold transition duration-300">Home</a>
-                <% if (user) { %>
-                    <a href="/dashboard" class="text-gray-300 hover:text-orange-400 transition duration-300">Dashboard</a>
-                <% } %>
-            </div>
-            
-            <% if (user) { %>
-                <div class="flex items-center space-x-4">
-                    <span class="text-sm text-gray-400 hidden sm:block">Olá, <%= user.username %></span>
-                    <a href="/logout" class="px-5 py-2 text-sm font-semibold rounded-full bg-red-600 hover:bg-red-700 transition duration-300 shadow-md shadow-red-500/30">
-                        Sair
-                    </a>
-                </div>
-            <% } else { %>
-                <a href="/login" class="px-5 py-2 text-sm font-semibold rounded-full bg-orange-600 hover:bg-orange-700 transition duration-300 shadow-md shadow-orange-500/50">
-                    Acesso Premium / Login
-                </a>
-            <% } %>
-        </nav>
-    </header>
+<%- include('partials/header.ejs', { user: user }) %>
 
     <main id="hero-main" class="container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 text-center relative">
         
         <h1 class="text-6xl sm:text-7xl lg:text-8xl font-black tracking-tighter mb-6 leading-tight">
             Descubra o Universo das 
-            <span class="bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-300">
+            <span class="bg-clip-text 
+text-transparent bg-gradient-to-r from-orange-400 to-amber-300">
                 Grandes Atrizes
             </span>
         </h1>
         
         <p class="text-xl sm:text-2xl text-gray-300 mb-10 max-w-4xl mx-auto">
-            Portfólios exclusivos, biografias detalhadas e previews de conteúdo. Seu portal para o talento feminino no cinema.
+            Portfólios exclusivos, biografias detalhadas e previews de conteúdo.
+Seu portal para o talento feminino no cinema.
         </p>
         
         <a id="hero-cta" href="#previews" class="inline-block px-12 py-4 text-lg font-bold rounded-lg transition-all duration-300 transform 
@@ -57,7 +32,8 @@
         
     </main>
     
-    <section id="previews" class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <section id="previews" class="container 
+mx-auto px-4 sm:px-6 lg:px-8 py-12">
         
         <h2 class="text-4xl font-bold mb-10 text-center">
             Conteúdos em 
@@ -66,67 +42,85 @@
             </span>
         </h2>
 
-        <div class="relative">
+        <div 
+class="relative">
             
             <span id="scroll-indicator" class="md:hidden absolute top-1/2 right-4 -translate-y-1/2 z-20 
                 text-sm font-light text-gray-400 text-shadow 
                 transition duration-500 opacity-0 pointer-events-none">
                 Deslize para ver mais →
-            </span>
+         
+   </span>
 
             <button id="scroll-left" onclick="scrollCards('left')" class="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-3 bg-black/70 hover:bg-black/90 rounded-full shadow-2xl hidden md:block border border-orange-500/30">
                 <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
             </button>
             
-            <div id="card-slider" class="flex space-x-6 pb-4 overflow-x-auto scroll-smooth snap-x snap-mandatory hide-scrollbar">
+            <div 
+id="card-slider" class="flex space-x-6 pb-4 overflow-x-auto scroll-smooth snap-x snap-mandatory hide-scrollbar">
                 
-                <% for (let i = 1; i <= 5; i++) { %>
+                <% for (let i = 1;
+i <= 5; i++) { %>
                     <div class="flex-shrink-0 w-80 snap-center">
                         <div class="bg-gray-900 rounded-lg overflow-hidden shadow-lg shadow-gray-700/50 transform hover:scale-[1.03] transition duration-500 cursor-pointer">
                             
+          
                             <div class="h-48 relative flex flex-col items-center justify-center 
                                          bg-gray-700 border-b-2 border-orange-600
-                                         bg-gradient-to-t from-gray-800 to-gray-700">
+                                
+         bg-gradient-to-t from-gray-800 to-gray-700">
                                 
                                 <span class="absolute top-3 left-3 px-3 py-1 text-xs font-bold rounded-full bg-orange-600 text-white shadow-md">
-                                    VÍDEO
+              
+                      VÍDEO
                                 </span>
-                                <svg class="w-12 h-12 text-orange-400/80 mb-2" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.58c.32-.32.74-.5 1.18-.5s.86.18 1.18.5l3.58 3.58c.3.3.44.7.42 1.12.02.42-.12.82-.42 1.12L12.58 19c-.32.32-.74.5-1.18.5s-.86-.18-1.18-.5L6.64 15.34c-.32-.32-.5-.74-.5-1.18s.18-.86.5-1.18l3.58-3.58z"/></svg>
+                                <svg class="w-12 h-12 text-orange-400/80 mb-2" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 19c0 1.1.9 
+2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.58c.32-.32.74-.5 1.18-.5s.86.18 1.18.5l3.58 3.58c.3.3.44.7.42 1.12.02.42-.12.82-.42 1.12L12.58 19c-.32.32-.74.5-1.18.5s-.86-.18-1.18-.5L6.64 15.34c-.32-.32-.5-.74-.5-1.18s.18-.86.5-1.18l3.58-3.58z"/></svg>
                                 <span class="text-sm font-semibold text-gray-300/50">CONTEÚDO TEMPORÁRIO <%= i * 2 - 1 %></span>
                             </div>
 
-                            <div class="p-4">
+                 
+           <div class="p-4">
                                 <h3 class="text-xl font-semibold mb-1 text-gray-100">Título do Vídeo Destaque</h3>
                                 <p class="text-gray-400 text-sm">Nova entrevista da Atriz X sobre a produção.</p>
-                            </div>
+        
+                    </div>
                         </div>
                     </div>
 
                     <div class="flex-shrink-0 w-80 snap-center">
-                        <div class="bg-gray-900 rounded-lg overflow-hidden shadow-lg shadow-gray-700/50 transform hover:scale-[1.03] transition duration-500 cursor-pointer">
+             
+           <div class="bg-gray-900 rounded-lg overflow-hidden shadow-lg shadow-gray-700/50 transform hover:scale-[1.03] transition duration-500 cursor-pointer">
                             
                             <div class="h-48 relative flex flex-col items-center justify-center 
-                                         bg-gray-700 border-b-2 border-orange-500 
+                
+                         bg-gray-700 border-b-2 border-orange-500 
                                          bg-gradient-to-t from-gray-800 to-gray-700">
-                                <span class="absolute top-3 left-3 px-3 py-1 text-xs font-bold rounded-full bg-orange-600 text-white shadow-md">
+                             
+   <span class="absolute top-3 left-3 px-3 py-1 text-xs font-bold rounded-full bg-orange-600 text-white shadow-md">
                                     IMAGEM
                                 </span>
-                                <svg class="w-12 h-12 text-orange-500/80 mb-2" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM5 19l3-4 2 2 4-5 5 6H5z"/></svg>
+                  
+              <svg class="w-12 h-12 text-orange-500/80 mb-2" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM5 19l3-4 2 2 4-5 5 6H5z"/></svg>
                                 <span class="text-sm font-semibold text-gray-300/50">CONTEÚDO TEMPORÁRIO <%= i * 2 %></span>
-                            </div>
+                 
+           </div>
 
                             <div class="p-4">
                                 <h3 class="text-xl font-semibold mb-1 text-gray-100">Galeria de Fotos Exclusiva</h3>
-                                <p class="text-gray-400 text-sm">Os melhores momentos do ensaio fotográfico.</p>
+                     
+           <p class="text-gray-400 text-sm">Os melhores momentos do ensaio fotográfico.</p>
                             </div>
                         </div>
                     </div>
-                <% } %>
+          
+      <% } %>
             </div>
             
             <button id="scroll-right" onclick="scrollCards('right')" class="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-3 bg-black/70 hover:bg-black/90 rounded-full shadow-2xl hidden md:block border border-orange-500/30">
                 <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-            </button>
+       
+     </button>
 
         </div>
     </section>
@@ -137,7 +131,8 @@
             Conheça as 
             <span class="bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-300">
                 Atrizes
-            </span>
+     
+       </span>
             Destaque
         </h2>
 
@@ -145,37 +140,49 @@
             
             <div class="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black via-black/80 to-transparent z-10 md:hidden"></div>
             
-            <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-6 justify-items-center">
+            <div class="grid 
+grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-6 justify-items-center">
                 
                 <% if (actresses && actresses.length > 0) { %>
                     <% actresses.forEach((actress, i) => { %>
                         <a href="/atriz/<%= actress.slug %>" 
-                           class="flex flex-col items-center group cursor-pointer 
-                           <%= i >= 9 ? 'hidden lg:flex' : '' %> 
-                           <%= i >= 6 && i < 9 ? 'opacity-50 md:opacity-100 transition duration-300 hover:opacity-100' : '' %>"> 
+   
+                        class="flex flex-col items-center group cursor-pointer 
+                           <%= i >= 9 ?
+'hidden lg:flex' : '' %> 
+                           <%= i >= 6 && i < 9 ?
+'opacity-50 md:opacity-100 transition duration-300 hover:opacity-100' : '' %>"> 
                             
                             <div class="w-20 h-20 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full bg-gray-800 border-4 border-transparent group-hover:border-orange-500 transition duration-300 overflow-hidden flex items-center justify-center shadow-lg group-hover:shadow-orange-500/50">
-                                <span class="text-xs font-bold text-gray-500">
+                 
+               <span class="text-xs font-bold text-gray-500">
                                     <img src="<%= actress.profilePhotoUrl %>" alt="<%= actress.name %>" class="w-full h-full object-cover">
                                 </span>
-                            </div>
+     
+                       </div>
                             <p class="mt-2 text-sm sm:text-lg font-semibold text-gray-200 group-hover:text-orange-400 transition duration-300 text-center">
                                 <%= actress.name %>
-                            </p>
+      
+                      </p>
                             <p class="text-xs text-gray-500">Conteúdo</p>
                         </a>
                     <% }) %>
-                    <% } else { %>
-                    <% for (let i = 0; i < 6; i++) { %>
+  
+                  <% } else { %>
+                    <% for (let i = 0;
+i < 6; i++) { %>
                         <div class="flex flex-col items-center opacity-50">
                             <div class="w-20 h-20 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full bg-gray-800 border-4 border-dashed border-gray-600 flex items-center justify-center">
-                                <span class="text-xs font-bold text-gray-500">VAZIO</span>
+                         
+       <span class="text-xs font-bold text-gray-500">VAZIO</span>
                             </div>
                             <p class="mt-2 text-sm sm:text-lg font-semibold text-gray-600 text-center">Atriz Vazia</p>
-                            <p class="text-xs text-gray-700">0 Conteúdos</p>
+                           
+ <p class="text-xs text-gray-700">0 Conteúdos</p>
                         </div>
                     <% } %>
-                    <p class="text-center text-gray-400 col-span-full mt-4">Nenhuma atriz encontrada. <a href="/admin/actresses/add" class="text-orange-400 hover:underline">Adicione uma no Admin.</a></p>
+                    <p class="text-center text-gray-400 col-span-full mt-4">Nenhuma atriz encontrada.
+<a href="/admin/actresses/add" class="text-orange-400 hover:underline">Adicione uma no Admin.</a></p>
                 <% } %>
 
             </div>
@@ -183,78 +190,79 @@
         
         <div class="text-center -mt-12 md:mt-8 relative z-20"> 
             <a href="/todas-atrizes" class="inline-block px-10 py-3 text-lg font-bold rounded-lg transition-all duration-300 transform 
-                bg-gray-800 hover:bg-orange-600 border border-orange-500/50 hover:border-orange-600 hover:text-white shadow-lg">
+           
+     bg-gray-800 hover:bg-orange-600 border border-orange-500/50 hover:border-orange-600 hover:text-white shadow-lg">
                 Ver Todas as Atrizes
             </a>
         </div>
     </section>
 
 
-    <footer class="bg-gray-900 border-t border-orange-500/20 mt-8 py-8">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-400 text-sm">
-            <p>&copy; 2025 AllPrivacy. Todos os direitos reservados. | Desenvolvido como MVP.</p>
-        </div>
-    </footer>
+<%- include('partials/footer.ejs') %>
     
     <style>
         /* Esconde a barra de rolagem horizontal */
         .hide-scrollbar::-webkit-scrollbar {
             display: none;
-        }
+}
         .hide-scrollbar {
             -ms-overflow-style: none;
-            scrollbar-width: none;
+scrollbar-width: none;
         }
 
         /* Sombra no Texto (Text-Shadow) */
         .text-shadow {
             text-shadow: 0 0 5px rgba(0, 0, 0, 0.9), 0 0 10px rgba(0, 0, 0, 0.5);
-        }
+}
     </style>
     
     <script>
         // 2. Script para Funcionalidade de Rolagem dos Cards (Setas)
         const slider = document.getElementById('card-slider');
-        const scrollDistance = 330; 
+const scrollDistance = 330; 
 
         function scrollCards(direction) {
             if (slider) {
                 if (direction === 'left') {
                     slider.scrollBy({
                         left: -scrollDistance,
-                        behavior: 'smooth'
+               
+         behavior: 'smooth'
                     });
-                } else if (direction === 'right') {
+} else if (direction === 'right') {
                     slider.scrollBy({
                         left: scrollDistance,
                         behavior: 'smooth'
                     });
-                }
+}
             }
         }
 
         // 3. Script para Desaparecer o Indicador de Rolagem (Horizontal)
         const horizontalIndicator = document.getElementById('scroll-indicator');
-        const previewSection = document.getElementById('previews');
+const previewSection = document.getElementById('previews');
 
         if (horizontalIndicator && previewSection && window.innerWidth < 768) {
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         horizontalIndicator.style.opacity = '1';
-                        setTimeout(() => {
+    
+                    setTimeout(() => {
                             horizontalIndicator.style.opacity = '0';
                             setTimeout(() => {
-                                horizontalIndicator.remove();
+                  
+              horizontalIndicator.remove();
                             }, 500); 
                         }, 5000); 
                         observer.unobserve(previewSection);
-                    }
+      
+              }
                 });
             }, {
                 threshold: 0.1
             });
-            observer.observe(previewSection);
+observer.observe(previewSection);
         }
     </script>
     

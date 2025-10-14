@@ -1,4 +1,4 @@
-// models/User.js
+// models/User.js (Atualizado)
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
@@ -28,6 +28,10 @@ const UserSchema = new mongoose.Schema({
     isPremium: {
         type: Boolean,
         default: false 
+    },
+    profilePhotoUrl: { // NOVO CAMPO: URL da foto de perfil
+        type: String,
+        default: null // Ou '/img/default-profile-user.jpg' se tiver um padrão visual
     },
     // Campos para recuperação de senha (ainda úteis para a lógica de reset)
     resetPasswordToken: String,
