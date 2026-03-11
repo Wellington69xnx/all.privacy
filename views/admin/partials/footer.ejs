@@ -1,0 +1,39 @@
+</main>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const body = document.body;
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('-translate-x-full'); 
+            sidebarOverlay.classList.toggle('hidden'); 
+            body.classList.toggle('overflow-hidden'); 
+        }
+
+        sidebarToggle.addEventListener('click', toggleSidebar);
+
+        // Listener para fechar a sidebar ao clicar em um link interno (mobile)
+        sidebar.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) {
+                    setTimeout(toggleSidebar, 100);
+                }
+            });
+        });
+
+        // Remove classes de mobile se a tela for redimensionada para desktop
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) {
+                sidebar.classList.remove('-translate-x-full');
+                sidebarOverlay.classList.add('hidden');
+                body.classList.remove('overflow-hidden');
+            }
+        });
+
+    </script>
+
+</body>
+</html>

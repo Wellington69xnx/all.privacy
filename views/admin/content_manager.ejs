@@ -1,0 +1,319 @@
+<div class="max-w-7xl mx-auto">
+    
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0 border-b border-gray-700 pb-4">
+        
+        <h2 class="2xl sm:text-3xl font-bold text-gray-200">
+            Conteúdo de <span class="text-orange-400"><%= actress.name %></span>
+        </h2>
+        
+        <div class="flex space-x-3">
+             <a href="/admin/actresses/<%= actress.slug %>/content/add" 
+               class="px-5 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-200 flex items-center justify-center space-x-2 text-sm sm:text-base">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                <span>Adicionar Conteúdo</span>
+            </a>
+
+            <a href="/admin/actresses" class="px-5 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 transition duration-200 flex items-center justify-center space-x-2 text-sm sm:text-base">
+                Voltar
+            </a>
+        </div>
+    </div>
+
+    <div id="filter-controls" class="flex flex-wrap gap-3 mb-6 text-sm">
+        <button data-filter="all" class="filter-btn text-gray-400 transition">Todos (<%= contents.length %>)</button>
+        <button data-filter="preview" class="filter-btn text-gray-400 transition">Previews</button>
+        <button data-filter="private" class="filter-btn text-gray-400 transition">Privados</button>
+        <button data-filter="upload" class="filter-btn text-gray-400 transition">Uploads</button>
+        <button data-filter="url" class="filter-btn text-gray-400 transition">URLs</button>
+    </div>
+
+    <div id="content-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        
+        <% if (contents && contents.length > 0) { %>
+            
+            <% contents.forEach(content => { %>
+                <% 
+                    // Lógica para detectar o tipo de visualização
+                    const path = content.urlPath.toLowerCase();
+                    const isImage = content.contentType === 'upload' && (path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.png') || path.endsWith('.gif'));
+                    const isVideoUpload = content.contentType === 'upload' && (path.endsWith('.mp4') || path.endsWith('.webm') || path.endsWith('.mov'));
+                    const isExternalUrl = content.contentType === 'url';
+                    
+                    // Prioriza o thumbnailPath
+                    let thumbnailSrc = content.thumbnailPath || (isImage ? content.urlPath : '/img/default-video-thumb.jpg'); 
+                    
+                    const isPrivate = content.accessLevel === 'private';
+                %>
+
+                <div class="content-card bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700 
+                            hover:border-orange-500 transition duration-150 cursor-pointer"
+                     data-access="<%= content.accessLevel %>"
+                     data-type="<%= content.contentType %>"
+                     data-id="<%= content._id %>"
+                     onclick="openModal('<%= content.title %>', '<%= content.urlPath %>', '<%= content.contentType %>', '<%= content.thumbnailPath %>')">
+                    
+                    <div class="h-32 bg-gray-700 flex items-center justify-center relative overflow-hidden">
+
+                        <% if (isImage || content.thumbnailPath) { %>
+                            <img src="<%= thumbnailSrc %>" alt="<%= content.title %>" class="w-full h-full object-cover">
+                            
+                        <% } else if (isVideoUpload) { %>
+                            <div class="w-full h-full bg-cover bg-center" style="background-image: url('<%= thumbnailSrc %>');"></div>
+                            <svg class="w-12 h-12 text-white absolute bg-black/50 rounded-full p-2" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M6 3l12 9-12 9z"/>
+                            </svg>
+
+                        <% } else if (isExternalUrl) { %>
+                            <div class="w-full h-full bg-cover bg-center bg-gray-600 flex items-center justify-center">
+                                <svg class="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                </svg>
+                            </div>
+                        <% } else { %>
+                             <div class="text-xs text-gray-400">Conteúdo não detectado</div>
+                        <% } %>
+
+                        <span class="absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold 
+                                     <%= isPrivate ? 'bg-red-600 text-white' : 'bg-green-600 text-white' %>">
+                            <%= content.accessLevel.toUpperCase() %>
+                        </span>
+                    </div>
+                    
+                    <div class="p-4 space-y-2">
+                        <h4 class="text-lg font-bold text-white truncate" title="<%= content.title %>"><%= content.title %></h4>
+                        <p class="text-xs text-gray-400 break-words">
+                            Tipo: 
+                            <span class="font-semibold <%= isExternalUrl ? 'text-blue-400' : 'text-pink-400' %>">
+                                <%= content.contentType.toUpperCase() %>
+                            </span>
+                        </p>
+                        
+                        <div class="pt-3 border-t border-gray-700 flex justify-end space-x-2">
+                            
+                            <a href="/admin/actresses/<%= actress.slug %>/content/edit/<%= content._id %>" title="Editar Conteúdo"
+                               class="inline-flex items-center px-3 py-1 border border-blue-500 rounded-lg text-blue-400 hover:bg-blue-500 hover:text-white transition duration-150 text-xs font-semibold">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                Editar
+                            </a>
+                            
+                            <button onclick="confirmContentDelete('<%= content._id %>', '<%= content.title %>')" title="Excluir Conteúdo"
+                               class="inline-flex items-center px-3 py-1 border border-red-500 rounded-lg text-red-400 hover:bg-red-500 hover:text-white transition duration-150 text-xs font-semibold">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                Excluir
+                            </button>
+                        </div>
+                    </div>
+
+                    <form id="delete-content-form-<%= content._id %>" 
+                          method="POST" 
+                          action="/admin/actresses/content/delete/<%= actress.slug %>/<%= content._id %>" 
+                          style="display:none;">
+                        <input type="hidden" name="actressSlug" value="<%= actress.slug %>">
+                        <input type="hidden" name="filePath" value="<%= content.urlPath %>">
+                        <input type="hidden" name="thumbnailPath" value="<%= content.thumbnailPath %>">
+                    </form>
+
+                </div>
+            <% }) %>
+            
+        <% } else { %>
+            <div class="p-6 text-center text-gray-400 col-span-full">
+                <p class="mb-4">Nenhum conteúdo adicionado a <%= actress.name %> ainda.</p>
+                <a href="/admin/actresses/<%= actress.slug %>/content/add" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 font-semibold">
+                    Adicionar Primeiro Conteúdo
+                </a>
+            </div>
+        <% } %>
+
+    </div>
+</div>
+
+<div id="contentModal" class="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm hidden items-center justify-center z-50 p-4" onclick="closeModal()">
+    <div class="bg-gray-900 rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden" onclick="event.stopPropagation()">
+        
+        <div class="p-4 flex justify-between items-center border-b border-gray-700 bg-gray-800">
+            <h3 id="modalTitle" class="text-xl font-bold text-white truncate">Visualização do Conteúdo</h3>
+            <button onclick="closeModal()" class="text-gray-400 hover:text-white p-1 rounded-full bg-gray-700 hover:bg-gray-600 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <div id="modalContentBody" class="p-4 bg-gray-900 flex items-center justify-center min-h-[50vh]">
+            <div class="text-gray-500">Carregando conteúdo...</div>
+        </div>
+
+        <div class="p-3 border-t border-gray-700 bg-gray-800 text-xs text-gray-400">
+            Caminho: <a id="modalUrl" href="#" target="_blank" class="text-orange-400 hover:underline break-all"></a>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const filterControls = document.getElementById('filter-controls');
+        const contentGrid = document.getElementById('content-grid');
+        const contentCards = contentGrid ? contentGrid.querySelectorAll('.content-card') : [];
+        const filterButtons = filterControls ? filterControls.querySelectorAll('.filter-btn') : [];
+        const modal = document.getElementById('contentModal');
+        const modalContentBody = document.getElementById('modalContentBody');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalUrl = document.getElementById('modalUrl');
+
+        // ------------------------------------
+        // LÓGICA DE FILTRAGEM (CLIENT-SIDE JS)
+        // ------------------------------------
+        const applyFilter = (filterType) => {
+            
+            contentCards.forEach(card => {
+                const access = card.getAttribute('data-access');
+                const type = card.getAttribute('data-type');
+                
+                let isVisible = false;
+
+                if (filterType === 'all') {
+                    isVisible = true;
+                } else if (filterType === access) { // 'preview' ou 'private'
+                    isVisible = true;
+                } else if (filterType === type) { // 'url' ou 'upload'
+                    isVisible = true;
+                }
+
+                card.style.display = isVisible ? 'block' : 'none';
+            });
+            
+            // Estilização do botão ativo (remove 'exibidos' e adiciona estilos)
+            filterButtons.forEach(btn => {
+                const currentFilter = btn.getAttribute('data-filter');
+                const isActive = currentFilter === filterType;
+                
+                // Remove todos os estilos ativos
+                btn.classList.remove('font-bold', 'border-b-2', 'border-orange-400', 'text-orange-400');
+                btn.classList.add('text-gray-400'); // Garante que a maioria seja cinza
+
+                // Adiciona estilos ao ativo
+                if (isActive) {
+                    btn.classList.add('font-bold', 'border-b-2', 'border-orange-400', 'text-orange-400');
+                }
+                
+                // Atualiza o texto (remove o contador para filtros individuais)
+                if (currentFilter === 'all') {
+                     const originalText = btn.textContent.split('(')[0].trim();
+                     btn.textContent = originalText + ` (${contentCards.length})`;
+                } else {
+                     const originalText = btn.textContent.split('(')[0].trim();
+                     btn.textContent = originalText;
+                }
+            });
+        };
+
+        // Event Listeners para os botões de filtro
+        filterControls.addEventListener('click', (event) => {
+            const button = event.target.closest('.filter-btn');
+            if (!button) return;
+
+            const filterType = button.getAttribute('data-filter');
+            applyFilter(filterType);
+        });
+
+        // Aplica o filtro padrão ao carregar a página
+        if (filterButtons.length > 0) {
+            applyFilter('all');
+        }
+
+
+        // ------------------------------------
+        // LÓGICA DO MODAL (POPUP)
+        // ------------------------------------
+        window.openModal = function(title, urlPath, contentType, thumbnailPath) {
+            // A visualização do modal não deve acontecer se o clique for em um botão de ação
+            if (event.target.closest('a') || event.target.closest('button')) {
+                return;
+            }
+
+            modalTitle.textContent = title;
+            modalUrl.textContent = urlPath;
+            modalUrl.href = urlPath;
+            modalContentBody.innerHTML = ''; // Limpa o conteúdo anterior
+            
+            let contentHtml = '';
+            const pathLower = urlPath.toLowerCase();
+
+            // Detecta se é imagem ou vídeo com base na extensão para uploads
+            const isImage = contentType === 'upload' && (pathLower.endsWith('.jpg') || pathLower.endsWith('.png') || pathLower.endsWith('.jpeg') || pathLower.endsWith('.gif'));
+            const isVideo = contentType === 'upload' && (pathLower.endsWith('.mp4') || pathLower.endsWith('.webm') || pathLower.endsWith('.mov'));
+
+
+            if (isImage) {
+                // Conteúdo é imagem (usa tag img)
+                contentHtml = `<img src="${urlPath}" alt="${title}" class="max-w-full max-h-[80vh] object-contain mx-auto">`;
+            } else if (isVideo) {
+                // Conteúdo é vídeo (usa tag video)
+                 contentHtml = `<video src="${urlPath}" controls autoplay class="w-full max-h-[80vh]"></video>`;
+            }
+            // Se for URL e for YouTube/Vimeo (usa iframe)
+            else if (contentType === 'url' && (urlPath.includes('youtube.com') || urlPath.includes('youtu.be') || urlPath.includes('vimeo.com'))) {
+                // Lógica simples de conversão para iframe do YouTube/Vimeo
+                let embedUrl = urlPath;
+                if (urlPath.includes('youtu.be')) {
+                    embedUrl = urlPath.replace('youtu.be/', 'youtube.com/embed/');
+                } else if (urlPath.includes('watch?v=')) {
+                    embedUrl = urlPath.replace('watch?v=', 'embed/');
+                } else if (urlPath.includes('vimeo.com')) {
+                    embedUrl = urlPath.replace('vimeo.com/', 'player.vimeo.com/video/');
+                }
+
+                contentHtml = `<iframe src="${embedUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full h-96 aspect-video"></iframe>`;
+            }
+            // Fallback
+            else {
+                contentHtml = `<div class="text-center text-gray-400 p-8">
+                                    <p class="mb-2">Visualização direta não suportada.</p>
+                                    <p>Clique no link abaixo para abrir em uma nova aba:</p>
+                                </div>`;
+            }
+
+            modalContentBody.innerHTML = contentHtml;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            document.body.classList.add('overflow-hidden'); 
+        }
+
+        window.closeModal = function() {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            modalContentBody.innerHTML = ''; // Limpa para parar vídeos
+            document.body.classList.remove('overflow-hidden');
+        }
+        
+        // Listener para fechar o modal com a tecla ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+
+        // ------------------------------------
+        // LÓGICA DE DELEÇÃO (DUPLA CONFIRMAÇÃO)
+        // ------------------------------------
+        window.confirmContentDelete = function(contentId, title) {
+            if (confirm(`ATENÇÃO: Você está prestes a excluir o item de conteúdo "${title}".\n\nTem certeza que deseja continuar?`)) {
+                if (confirm(`CONFIRMAÇÃO FINAL: Se você excluir este item, o arquivo ou o link será removido permanentemente.\n\nPressione OK para DELETAR.`)) {
+                    
+                    const form = document.getElementById(`delete-content-form-${contentId}`);
+                    if (form) {
+                        form.submit();
+                    } else {
+                        alert('Erro: Formulário de exclusão não encontrado.');
+                    }
+                } else {
+                    alert('A exclusão foi cancelada.');
+                }
+            } else {
+                alert('A exclusão foi cancelada.');
+            }
+        }
+    });
+</script>

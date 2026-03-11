@@ -1,0 +1,340 @@
+<div class="max-w-4xl mx-auto">
+    <h2 class="text-3xl font-bold text-gray-200 mb-6">
+        Adicionar Novo Conteúdo a: <span class="text-orange-400"><%= actress.name %></span>
+    </h2>
+
+    <a href="/admin/actresses/<%= actress.slug %>/videos" class="text-gray-400 hover:text-orange-400 transition mb-4 inline-block">
+        ← Voltar à Gestão de Conteúdo
+    </a>
+
+    <div class="bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg border border-gray-700">
+        
+        <form id="contentForm" action="/admin/actresses/<%= actress.slug %>/content/add" 
+              method="POST" 
+              enctype="multipart/form-data" 
+              class="space-y-6">
+
+            <div>
+                <h3 class="text-xl font-semibold text-orange-400 border-b border-orange-700/50 pb-2 mb-4">Acesso e Tipo</h3>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Nível de Acesso</label>
+                <div class="flex space-x-6">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="accessLevel" value="preview" checked class="form-radio text-green-500 bg-gray-700 border-gray-600 focus:ring-green-500">
+                        <span class="ml-2 text-gray-300">Preview (Público)</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="accessLevel" value="private" class="form-radio text-red-500 bg-gray-700 border-gray-600 focus:ring-red-500">
+                        <span class="ml-2 text-gray-300">Privado (Exclusivo)</span>
+                    </label>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Método de Conteúdo</label>
+                <div class="flex space-x-6" id="contentTypeRadios">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="contentType" value="url" checked class="form-radio text-blue-500 bg-gray-700 border-gray-600 focus:ring-blue-500">
+                        <span class="ml-2 text-gray-300">URL (Link Externo)</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="contentType" value="upload" class="form-radio text-blue-500 bg-gray-700 border-gray-600 focus:ring-blue-500">
+                        <span class="ml-2 text-gray-300">Upload (Ficheiro Local)</span>
+                    </label>
+                </div>
+            </div>
+
+            <div id="contentFields" class="space-y-4 mt-6">
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-300 mb-2">Título do Conteúdo</label>
+                    <input type="text" id="title" name="title" placeholder="Ex: Ensaio Exclusivo de Verão" required
+                           class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-orange-500 focus:border-orange-500 text-white placeholder-gray-400">
+                </div>
+                
+                <div id="urlField">
+                    <label for="urlPath" class="block text-sm font-medium text-gray-300 mb-2">URL do Conteúdo (YouTube, Vimeo, etc.)</label>
+                    <input type="url" id="urlPath" name="urlPath" placeholder="https://youtube.com/watch?v=..." 
+                           class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-orange-500 focus:border-orange-500 text-white placeholder-gray-400">
+                </div>
+
+                <div id="uploadField" class="hidden space-y-4">
+                    <div>
+                        <label for="files" class="block text-sm font-medium text-gray-300 mb-2">1. Ficheiros (Vídeos ou Imagens)</label>
+                        <input type="file" id="files" name="files" multiple accept="video/*,image/*"
+                               class="w-full text-sm text-gray-400
+                                    file:mr-4 file:py-2 file:px-4
+                                    file:rounded-full file:border-0
+                                    file:text-sm file:font-semibold
+                                    file:bg-orange-500 file:text-white
+                                    hover:file:bg-orange-600
+                                    transition duration-150">
+                        <p class="text-xs text-gray-500 mt-1">Selecione o vídeo privado principal aqui.</p>
+                    </div>
+
+                    <div id="thumbnail-capture-area" class="hidden p-4 border border-blue-600 rounded-lg bg-blue-900/20 space-y-3">
+                        <h4 class="text-lg font-semibold text-blue-400">2. Leitor de Vídeo (Thumbnail e Previews)</h4>
+                        <p class="text-sm text-blue-200">Pause o vídeo na parte desejada para capturar a miniatura de capa ou para marcar os trechos dos previews.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <video id="video-player" controls class="w-full rounded-md shadow-lg" style="max-height: 250px;"></video>
+                                <div class="mt-2 text-center text-xs text-gray-400 font-mono" id="video-time-display">00:00 / 00:00</div>
+                            </div>
+                            <div class="flex flex-col items-center justify-center space-y-2 border-l border-blue-800 pl-4">
+                                <h5 class="text-sm font-medium text-gray-300">Capa do Vídeo</h5>
+                                <button type="button" id="capture-button" disabled
+                                        class="w-full px-4 py-2 bg-yellow-600 text-white font-semibold rounded-lg hover:bg-yellow-700 disabled:opacity-50 transition">
+                                    📷 Capturar Frame para Capa
+                                </button>
+                                
+                                <canvas id="video-canvas" class="hidden"></canvas>
+                                <img id="thumbnail-preview" class="w-full rounded-md border-2 border-gray-600 object-contain mt-2" src="/img/default-video-thumb.jpg" alt="Preview Thumbnail" style="max-height: 120px;">
+                                <p class="text-xs text-gray-400" id="capture-status">Nenhum frame capturado.</p>
+                            </div>
+                        </div>
+                        
+                        <input type="file" id="thumbnail-file-input" name="thumbnail_file" class="hidden">
+                    </div>
+                </div>
+            </div>
+
+            <div id="customPreviewField" class="hidden mt-6 bg-gray-700/50 p-5 rounded-lg border border-gray-600 shadow-inner">
+                <div class="flex justify-between items-center mb-4 border-b border-gray-600 pb-2">
+                    <div>
+                        <h4 class="text-lg font-semibold text-orange-400">Amostras do Vídeo (Previews)</h4>
+                        <p class="text-xs text-gray-300 mt-1">Use o Leitor de Vídeo acima para escolher as partes exatas das amostras.</p>
+                    </div>
+                    <button type="button" id="addPreviewBtn" class="px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white rounded text-sm font-bold shadow transition">
+                        + Adicionar Trecho
+                    </button>
+                </div>
+
+                <div id="previewList" class="space-y-3"></div>
+            </div>
+
+            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-700">
+                <a href="/admin/actresses/<%= actress.slug %>/videos" class="px-5 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition duration-200 font-semibold">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-5 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition duration-200 font-semibold shadow-lg">
+                    Salvar Conteúdo
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const contentTypeRadios = document.getElementById('contentTypeRadios');
+        const urlField = document.getElementById('urlField');
+        const uploadField = document.getElementById('uploadField');
+        const urlInput = document.getElementById('urlPath');
+        const fileInput = document.getElementById('files');
+        
+        // Elementos do Leitor de Vídeo e Captura
+        const captureArea = document.getElementById('thumbnail-capture-area');
+        const videoPlayer = document.getElementById('video-player');
+        const timeDisplay = document.getElementById('video-time-display');
+        const videoCanvas = document.getElementById('video-canvas');
+        const thumbnailPreview = document.getElementById('thumbnail-preview');
+        const captureButton = document.getElementById('capture-button');
+        const thumbnailFileInput = document.getElementById('thumbnail-file-input');
+        const captureStatus = document.getElementById('capture-status');
+        
+        // Elementos dos Previews Interativos
+        const customPreviewField = document.getElementById('customPreviewField');
+        const addPreviewBtn = document.getElementById('addPreviewBtn');
+        const previewList = document.getElementById('previewList');
+
+        const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+
+        const formatTime = (seconds) => {
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        };
+
+        videoPlayer.addEventListener('timeupdate', () => {
+            if (videoPlayer.duration) {
+                timeDisplay.textContent = `${formatTime(videoPlayer.currentTime)} / ${formatTime(videoPlayer.duration)}`;
+            }
+        });
+
+        const checkCustomPreviewEligibility = () => {
+            const typeSelected = document.querySelector('input[name="contentType"]:checked');
+            const accessSelected = document.querySelector('input[name="accessLevel"]:checked');
+            
+            if (typeSelected && accessSelected) {
+                const isUpload = typeSelected.value === 'upload';
+                const isPrivate = accessSelected.value === 'private';
+                
+                if (isUpload && isPrivate) {
+                    customPreviewField.classList.remove('hidden');
+                } else {
+                    customPreviewField.classList.add('hidden');
+                    previewList.innerHTML = ''; 
+                }
+            }
+        };
+
+        // Função para criar uma linha de preview interativa (Nomes Corrigidos!)
+        addPreviewBtn.addEventListener('click', () => {
+            const div = document.createElement('div');
+            div.className = 'flex flex-col sm:flex-row items-end space-y-2 sm:space-y-0 sm:space-x-4 bg-gray-800 p-4 rounded-md border border-gray-500 relative preview-item';
+            
+            div.innerHTML = `
+                <div class="flex-1 w-full">
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Ponto de Início (Segundos)</label>
+                    <div class="flex space-x-2">
+                        <input type="number" name="previewStarts" required readonly placeholder="0" 
+                               class="w-full sm:w-24 px-3 py-2 bg-gray-900 border border-gray-600 rounded text-gray-300 font-mono start-input focus:outline-none">
+                        <button type="button" class="set-start-btn px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-bold transition whitespace-nowrap shadow">
+                            📍 Marcar Início Aqui
+                        </button>
+                    </div>
+                </div>
+                <div class="flex-1 w-full">
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Duração do Trecho (Segundos)</label>
+                    <div class="flex space-x-2">
+                        <input type="number" name="previewDurations" required readonly placeholder="0" 
+                               class="w-full sm:w-24 px-3 py-2 bg-gray-900 border border-gray-600 rounded text-green-400 font-mono duration-input focus:outline-none">
+                        <button type="button" class="set-end-btn px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-xs font-bold transition whitespace-nowrap shadow">
+                            🏁 Marcar Fim Aqui
+                        </button>
+                    </div>
+                </div>
+                <button type="button" class="remove-preview-btn w-full sm:w-auto px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded font-bold transition">
+                    X
+                </button>
+            `;
+            
+            const startBtn = div.querySelector('.set-start-btn');
+            const endBtn = div.querySelector('.set-end-btn');
+            const startInput = div.querySelector('.start-input');
+            const durationInput = div.querySelector('.duration-input');
+            const removeBtn = div.querySelector('.remove-preview-btn');
+
+            let startTime = null;
+
+            startBtn.addEventListener('click', () => {
+                if (!videoPlayer.src || isNaN(videoPlayer.duration)) {
+                    return alert("Por favor, selecione um ficheiro de vídeo primeiro.");
+                }
+                startTime = Math.floor(videoPlayer.currentTime);
+                startInput.value = startTime;
+                startInput.classList.remove('text-gray-300');
+                startInput.classList.add('text-white');
+                durationInput.value = ''; 
+            });
+
+            endBtn.addEventListener('click', () => {
+                if (!videoPlayer.src || isNaN(videoPlayer.duration)) {
+                    return alert("Por favor, selecione um ficheiro de vídeo primeiro.");
+                }
+                if (startTime === null || startInput.value === '') {
+                    return alert("Por favor, clique em 'Marcar Início Aqui' primeiro!");
+                }
+                
+                let endTime = Math.floor(videoPlayer.currentTime);
+                
+                if (endTime <= startTime) {
+                    return alert("O tempo de Fim deve ser depois do tempo de Início! Avance o vídeo.");
+                }
+
+                let duration = endTime - startTime;
+                durationInput.value = duration;
+            });
+
+            removeBtn.addEventListener('click', function() {
+                div.remove();
+            });
+
+            previewList.appendChild(div);
+        });
+
+        document.querySelectorAll('input[name="contentType"], input[name="accessLevel"]').forEach(radio => {
+            radio.addEventListener('change', checkCustomPreviewEligibility);
+        });
+
+        const toggleFields = (type) => {
+            const isUpload = type === 'upload';
+            urlField.classList.toggle('hidden', isUpload);
+            uploadField.classList.toggle('hidden', !isUpload);
+
+            urlInput.toggleAttribute('required', !isUpload);
+            urlInput.value = isUpload ? '' : urlInput.value;
+
+            fileInput.toggleAttribute('required', isUpload);
+            if (!isUpload) {
+                fileInput.value = '';
+                captureArea.classList.add('hidden');
+                videoPlayer.src = '';
+            }
+        };
+
+        contentTypeRadios.addEventListener('change', (event) => {
+            if (event.target.name === 'contentType') {
+                toggleFields(event.target.value);
+            }
+        });
+
+        fileInput.addEventListener('change', (event) => {
+            const files = event.target.files;
+            
+            if (files.length > 0) {
+                const file = files[0];
+                const fileName = file.name.toLowerCase();
+                const isVideo = !IMAGE_EXTENSIONS.some(ext => fileName.endsWith(ext));
+
+                if (isVideo && file.type.startsWith('video/')) {
+                    captureArea.classList.remove('hidden');
+                    captureButton.disabled = false;
+                    captureStatus.textContent = 'A carregar vídeo...';
+
+                    const videoUrl = URL.createObjectURL(file);
+                    videoPlayer.src = videoUrl;
+                    videoPlayer.load();
+
+                    videoPlayer.onloadeddata = () => {
+                        captureStatus.textContent = 'Pronto. Pause o vídeo na parte desejada.';
+                    };
+                } else {
+                    captureArea.classList.add('hidden');
+                    videoPlayer.src = '';
+                    thumbnailFileInput.value = '';
+                }
+            } else {
+                captureArea.classList.add('hidden');
+                videoPlayer.src = '';
+            }
+        });
+
+        captureButton.addEventListener('click', () => {
+            const video = videoPlayer;
+            const canvas = videoCanvas;
+            const context = canvas.getContext('2d');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob((blob) => {
+                const thumbnailFile = new File([blob], `thumbnail-${Date.now()}.jpeg`, {
+                    type: 'image/jpeg',
+                    lastModified: Date.now()
+                });
+
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(thumbnailFile);
+                thumbnailFileInput.files = dataTransfer.files;
+
+                thumbnailPreview.src = URL.createObjectURL(thumbnailFile);
+                captureStatus.textContent = 'Capa capturada e pronta para envio!';
+
+            }, 'image/jpeg', 0.9);
+        });
+
+        toggleFields(document.querySelector('input[name="contentType"]:checked').value);
+        checkCustomPreviewEligibility();
+    });
+</script>

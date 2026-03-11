@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/output.css">
+    <style>
+        /* Estilização do Loading AllPrivacy */
+        .player-loader {
+            background: rgba(0, 0, 0, 0.98);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 110;
+        }
+        
+        .pulse-logo {
+            animation: pulse 1.2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.02); }
+        }
+
+        /* Fade suave para a mídia */
+        #viewer-media-container video, #viewer-media-container img {
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Esconder scrollbar no modal */
+        #video-viewer { scrollbar-width: none; -ms-overflow-style: none; }
+        #video-viewer::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen font-sans">
+    
+<%- include('partials/header.ejs', { user: user }) %>
+
+    <main class="relative bg-black">
+        <div class="relative h-[400px] md:h-[500px] w-full">
+            <div class="absolute inset-0 w-full h-full bg-cover bg-center bg-gray-800" style="background-image: url('<%= actress.coverPhotoUrl %>');"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent z-10"></div>
+            
+            <div class="container mx-auto px-4 absolute inset-x-0 bottom-0 z-20 pb-10 text-center md:text-left">
+                <div class="flex flex-col md:flex-row items-center md:items-end"> 
+                    <div class="relative w-32 h-32 md:w-48 md:h-48 flex-shrink-0 mb-4 md:mb-0 md:mr-8">
+                        <img src="<%= actress.profilePhotoUrl %>" class="rounded-full object-cover w-full h-full border-4 border-orange-600 shadow-2xl">
+                    </div>
+                    <div> 
+                        <h1 class="text-5xl md:text-7xl font-black mb-1 tracking-tighter italic uppercase"><%= actress.name %></h1>
+                        <p class="text-lg text-gray-300 max-w-xl"><%= actress.description %></p>
+                        
+                        <button onclick="toggleFavorite('actress', '<%= actress._id %>')" id="btn-fav-actress" class="mt-4 px-6 py-2 rounded-full flex items-center space-x-2 transition border border-gray-600 <%= userFavorites && userFavorites.actresses.includes(actress._id.toString()) ? 'bg-orange-600/20 border-orange-500 text-orange-400' : 'bg-gray-800/50 text-gray-300' %>">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 <%= userFavorites && userFavorites.actresses.includes(actress._id.toString()) ? 'fill-current' : 'fill-none' %>" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                            <span id="txt-fav-actress" class="font-bold uppercase text-[10px] tracking-widest"><%= userFavorites && userFavorites.actresses.includes(actress._id.toString()) ? 'Atriz Favorita' : 'Favoritar Atriz' %></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <section class="container mx-auto px-4 py-12"> 
+        <div class="flex border-b border-gray-800 mb-8 space-x-8">
+            <button id="tab-previews" onclick="switchTab('previews')" class="py-3 px-2 text-sm font-black tracking-widest border-b-2 border-orange-500 text-orange-500 uppercase">Previews</button>
+            <button id="tab-privado" onclick="switchTab('privado')" class="py-3 px-2 text-sm font-black tracking-widest border-b-2 border-transparent text-gray-500 uppercase">Privado</button>
+        </div>
+
+        <div id="content-previews" class="grid grid-cols-2 lg:grid-cols-3 gap-6">
+            <% previews.forEach((content, index) => { %>
+                <% let isFav = userFavorites && userFavorites.contents.includes(content._id.toString()); %>
+                <div class="bg-[#0f0f0f] rounded-2xl overflow-hidden cursor-pointer group relative border border-gray-900 hover:border-orange-600/50 transition duration-500" onclick="openViewer('previews', <%= index %>)">
+                    <div class="relative h-48 overflow-hidden">
+                        <img src="<%= content.thumbnailPath || content.urlPath %>" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition duration-700">
+                    </div>
+                    <div class="p-4 flex justify-between items-center">
+                        <h3 class="font-bold truncate text-[10px] uppercase tracking-widest text-gray-400"><%= content.title %></h3>
+                        <div id="grid-fav-icon-<%= content._id %>" class="<%= isFav ? 'text-orange-500' : 'text-gray-700' %>">
+                            <svg class="h-5 w-5 <%= isFav ? 'fill-current' : 'fill-none' %>" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+
+        <div id="content-privado" class="hidden grid grid-cols-2 lg:grid-cols-3 gap-6">
+            <% privateContent.forEach((content) => { %>
+                <div class="bg-[#0f0f0f] rounded-2xl overflow-hidden relative grayscale opacity-30 border border-gray-900">
+                    <img src="<%= content.thumbnailPath || content.urlPath %>" class="w-full h-48 object-cover">
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-orange-600" fill="currentColor" viewBox="0 0 20 20"><path d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"/></svg>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    </section>
+
+    <div id="video-viewer" class="fixed inset-0 z-[100] hidden bg-black/98 flex flex-col items-center justify-center p-2 sm:p-6 backdrop-blur-xl">
+        
+        <button onclick="closeViewer()" class="absolute top-6 right-6 text-white/20 hover:text-orange-500 transition-all z-[130] hover:rotate-90">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+
+        <div class="relative w-full max-w-6xl bg-black rounded-3xl overflow-hidden shadow-[0_0_60px_-15px_rgba(234,88,12,0.3)] flex flex-col border border-white/5">
+            
+            <div id="player-loading-screen" class="absolute inset-0 z-[110] player-loader pointer-events-none transition-opacity duration-300">
+                <h2 class="text-4xl font-black text-white tracking-tighter pulse-logo italic">All<span class="text-orange-600">Privacy</span></h2>
+                <div class="mt-4 w-12 h-[2px] bg-orange-600"></div>
+            </div>
+
+            <div class="relative group flex items-center justify-center bg-black min-h-[300px]">
+                
+                <button onclick="navigateViewer(-1)" class="absolute left-4 z-[125] p-4 rounded-full bg-white/5 text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-orange-600 hover:scale-110">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="3" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+
+                <div id="viewer-media-container" class="aspect-video bg-black flex items-center justify-center w-full z-[100]"></div>
+
+                <button onclick="navigateViewer(1)" class="absolute right-4 z-[125] p-4 rounded-full bg-white/5 text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-orange-600 hover:scale-110">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="3" d="M9 5l7 7-7 7"/></svg>
+                </button>
+            </div>
+
+            <div class="p-6 md:p-8 flex flex-col md:flex-row justify-between items-center bg-[#080808] border-t border-white/5 gap-4 z-[120]">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-full border border-orange-600/50 p-1">
+                        <img src="<%= actress.profilePhotoUrl %>" class="w-full h-full rounded-full object-cover">
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-black text-white uppercase tracking-tighter italic"><%= actress.name %></h2>
+                        <span class="text-[9px] text-orange-600 font-bold tracking-[0.3em] uppercase">AllPrivacy Exclusive</span>
+                    </div>
+                </div>
+                
+                <div id="viewer-fav-button-container" class="w-full md:w-auto"></div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const previewsList = <%- JSON.stringify(previews) %>;
+    const privateList = <%- JSON.stringify(privateContent) %>;
+    let currentList = [];
+    let currentIndex = 0;
+
+    function switchTab(tab) {
+        document.getElementById('content-previews').classList.toggle('hidden', tab !== 'previews');
+        document.getElementById('content-privado').classList.toggle('hidden', tab !== 'privado');
+        document.getElementById('tab-previews').className = tab === 'previews' ? 'py-3 px-2 text-sm font-black tracking-widest border-b-2 border-orange-500 text-orange-500 uppercase' : 'py-3 px-2 text-sm font-black tracking-widest border-b-2 border-transparent text-gray-500 uppercase';
+        document.getElementById('tab-privado').className = tab === 'privado' ? 'py-3 px-2 text-sm font-black tracking-widest border-b-2 border-orange-500 text-orange-500 uppercase' : 'py-3 px-2 text-sm font-black tracking-widest border-b-2 border-transparent text-gray-500 uppercase';
+    }
+
+    function openViewer(listType, index) {
+        currentList = (listType === 'previews') ? previewsList : privateList;
+        currentIndex = index;
+        document.getElementById('video-viewer').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        renderMedia();
+    }
+
+    function renderMedia() {
+        const loadingScreen = document.getElementById('player-loading-screen');
+        const container = document.getElementById('viewer-media-container');
+        const content = currentList[currentIndex];
+        
+        loadingScreen.style.opacity = '1';
+        loadingScreen.classList.remove('hidden');
+        
+        container.innerHTML = '';
+        const isVideo = content.urlPath.toLowerCase().endsWith('.mp4') || content.urlPath.toLowerCase().endsWith('.webm');
+
+        if (isVideo) {
+            const video = document.createElement('video');
+            video.src = content.urlPath;
+            video.className = "max-h-full w-full pointer-events-auto";
+            video.controls = true;
+            video.autoplay = true;
+            video.preload = "metadata"; // LIMITE DE VELOCIDADE: Só carrega o necessário para começar
+            video.playsInline = true;
+
+            // SOME O LOADING NO PRIMEIRO FRAME (SUPER RÁPIDO)
+            video.onloadeddata = () => {
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => loadingScreen.classList.add('hidden'), 300);
+            };
+            container.appendChild(video);
+        } else {
+            const img = document.createElement('img');
+            img.src = content.urlPath;
+            img.className = "max-h-full object-contain pointer-events-auto";
+            img.onload = () => {
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => loadingScreen.classList.add('hidden'), 300);
+            };
+            container.appendChild(img);
+        }
+
+        const gridIcon = document.getElementById(`grid-fav-icon-${content._id}`);
+        const isFav = gridIcon ? gridIcon.querySelector('svg').classList.contains('fill-current') : false;
+        updateModalFavButton(content._id, isFav);
+    }
+
+    function navigateViewer(direction) {
+        currentIndex = (currentIndex + direction + currentList.length) % currentList.length;
+        renderMedia();
+    }
+
+    function closeViewer() {
+        document.getElementById('video-viewer').classList.add('hidden');
+        document.getElementById('viewer-media-container').innerHTML = '';
+        document.body.style.overflow = 'auto';
+    }
+
+    function updateModalFavButton(contentId, isFav) {
+        const favContainer = document.getElementById('viewer-fav-button-container');
+        favContainer.innerHTML = `
+            <button onclick="toggleFavorite('content', '${contentId}', true)" class="w-full md:w-auto flex items-center justify-center space-x-3 transition px-8 py-3 rounded-full font-black text-[10px] tracking-[0.2em] ${isFav ? 'bg-orange-600 text-white' : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'} uppercase">
+                <svg class="h-4 w-4 ${isFav ? 'fill-current' : 'fill-none'}" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                <span>${isFav ? 'Salvo' : 'Favoritar'}</span>
+            </button>
+        `;
+    }
+
+    async function toggleFavorite(type, id, fromModal = false) {
+        try {
+            const response = await fetch(`/favorites/${type}/${id}`, { method: 'POST' });
+            const data = await response.json();
+            if (data.success) {
+                if (type === 'actress') {
+                    const btn = document.getElementById('btn-fav-actress');
+                    const txt = document.getElementById('txt-fav-actress');
+                    const svg = btn.querySelector('svg');
+                    btn.className = `mt-4 px-6 py-2 rounded-full flex items-center space-x-2 transition border ${data.isFavorited ? 'bg-orange-600/20 border-orange-500 text-orange-400' : 'bg-gray-800/50 border-gray-600 text-gray-300'}`;
+                    svg.classList.toggle('fill-current', data.isFavorited);
+                    svg.classList.toggle('fill-none', !data.isFavorited);
+                    txt.innerText = data.isFavorited ? 'Atriz Favorita' : 'Favoritar Atriz';
+                } else {
+                    const gridIconDiv = document.getElementById(`grid-fav-icon-${id}`);
+                    if (gridIconDiv) {
+                        gridIconDiv.className = data.isFavorited ? 'text-orange-500' : 'text-gray-700';
+                        gridIconDiv.querySelector('svg').classList.toggle('fill-current', data.isFavorited);
+                        gridIconDiv.querySelector('svg').classList.toggle('fill-none', !data.isFavorited);
+                    }
+                    if (fromModal) updateModalFavButton(id, data.isFavorited);
+                }
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (!document.getElementById('video-viewer').classList.contains('hidden')) {
+            if (e.key === 'ArrowRight') navigateViewer(1);
+            if (e.key === 'ArrowLeft') navigateViewer(-1);
+            if (e.key === 'Escape') closeViewer();
+        }
+    });
+</script>
+
+<%- include('partials/footer.ejs') %>
+</body>
+</html>

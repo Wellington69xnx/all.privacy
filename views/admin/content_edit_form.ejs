@@ -1,0 +1,185 @@
+<div class="max-w-4xl mx-auto">
+    <h2 class="text-3xl font-bold text-gray-200 mb-6">
+        Editar Conteúdo: <span class="text-orange-400 truncate block"><%= content.title %></span>
+    </h2>
+
+    <a href="/admin/actresses/<%= actress.slug %>/videos" class="text-gray-400 hover:text-orange-400 transition mb-4 inline-block">
+        ← Voltar ao Gerenciamento de Conteúdo
+    </a>
+
+    <div class="bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg border border-gray-700">
+        
+        <form id="editContentForm" 
+              action="/admin/actresses/<%= actress.slug %>/content/edit/<%= content._id %>" 
+              method="POST" 
+              enctype="multipart/form-data" 
+              class="space-y-6">
+
+            <input type="hidden" name="oldThumbnailPath" value="<%= content.thumbnailPath %>">
+
+            <div>
+                <h3 class="text-xl font-semibold text-orange-400 border-b border-orange-700/50 pb-2 mb-4">Informações Básicas</h3>
+                
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-300 mb-2">Novo Título do Conteúdo</label>
+                    <input type="text" id="title" name="title" value="<%= content.title %>" required
+                           class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-orange-500 focus:border-orange-500 text-white placeholder-gray-400">
+                </div>
+                
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Nível de Acesso</label>
+                    <div class="flex space-x-6">
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="accessLevel" value="preview" <%= content.accessLevel === 'preview' ? 'checked' : '' %> class="form-radio text-green-500 bg-gray-700 border-gray-600 focus:ring-green-500">
+                            <span class="ml-2 text-gray-300">Preview (Público)</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="accessLevel" value="private" <%= content.accessLevel === 'private' ? 'checked' : '' %> class="form-radio text-red-500 bg-gray-700 border-gray-600 focus:ring-red-500">
+                            <span class="ml-2 text-gray-300">Privado (Exclusivo)</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <% if (content.contentType === 'upload' || content.thumbnailPath) { %>
+            <div class="space-y-4 pt-4">
+                <h3 class="text-xl font-semibold text-yellow-400 border-b border-yellow-700/50 pb-2 mb-4">Gerenciar Thumbnail</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Thumbnail Atual</label>
+                        <img src="<%= content.thumbnailPath || '/img/default-video-thumb.jpg' %>" alt="Thumbnail Atual" class="w-full h-32 object-cover rounded-md border border-gray-600">
+                        <p class="text-xs text-gray-500 mt-2">Caminho: <%= content.thumbnailPath %></p>
+                    </div>
+
+                    <% if (content.contentType === 'upload') { %>
+                        <div class="space-y-3">
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Substituir Thumbnail (Capturar Frame)</label>
+                            
+                            <video id="video-player" controls class="w-full rounded-md shadow-lg bg-black" style="max-height: 150px;">
+                                <source src="<%= content.urlPath %>" type="video/mp4">
+                                Seu navegador não suporta a tag de vídeo.
+                            </video>
+
+                            <button type="button" id="capture-button" 
+                                    class="w-full px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
+                                Capturar Novo Frame
+                            </button>
+                            
+                            <canvas id="video-canvas" class="hidden"></canvas>
+                            <input type="file" id="thumbnail-file-input" name="thumbnail_file" class="hidden">
+                        </div>
+                    <% } else { %>
+                        <div>
+                            <label for="manual_thumbnail" class="block text-sm font-medium text-gray-300 mb-2">Substituir Thumbnail (Upload de Imagem)</label>
+                            <input type="file" id="manual_thumbnail" name="thumbnail_file" accept="image/*"
+                                   class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-500 file:text-white hover:file:bg-orange-600 transition duration-150">
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+            <% } %>
+
+
+            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-700">
+                
+                <button type="button" onclick="confirmContentDelete('<%= content._id %>', '<%= content.title %>', '<%= actress.slug %>')" 
+                        class="px-5 py-2 border border-red-500 text-red-400 rounded-lg hover:bg-red-900/50 transition duration-200 font-semibold">
+                    Excluir Conteúdo
+                </button>
+                
+                <button type="submit" class="px-5 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition duration-200 font-semibold shadow-lg">
+                    Salvar Alterações
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const videoPlayer = document.getElementById('video-player');
+        const videoCanvas = document.getElementById('video-canvas');
+        const captureButton = document.getElementById('capture-button');
+        const thumbnailFileInput = document.getElementById('thumbnail-file-input');
+
+        // Lógica de Captura de Frame (Apenas para uploads de vídeo)
+        if (captureButton && videoPlayer) {
+            
+            // Habilita o player para garantir que os dados de vídeo sejam carregados
+            videoPlayer.onloadeddata = () => {
+                captureButton.disabled = false;
+            };
+
+            captureButton.addEventListener('click', () => {
+                const video = videoPlayer;
+                const canvas = videoCanvas;
+                const context = canvas.getContext('2d');
+                
+                // Define o tamanho do canvas para o tamanho do vídeo
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+
+                // Desenha o frame atual do vídeo no canvas
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                // 1. Converte o canvas para um Blob (imagem)
+                canvas.toBlob((blob) => {
+                    
+                    // 2. Cria um objeto File a partir do Blob
+                    const thumbnailFile = new File([blob], `thumbnail-edit-${Date.now()}.jpeg`, {
+                        type: 'image/jpeg',
+                        lastModified: Date.now()
+                    });
+
+                    // 3. Usa DataTransfer para injetar o File no Input escondido
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(thumbnailFile);
+                    thumbnailFileInput.files = dataTransfer.files;
+                    
+                    alert('Novo thumbnail capturado com sucesso! Pressione "Salvar Alterações" para aplicar.');
+                    
+                }, 'image/jpeg', 0.9); // Formato JPEG com qualidade 90%
+            });
+        }
+        
+        // ------------------------------------
+        // LÓGICA DE DELEÇÃO (DUPLA CONFIRMAÇÃO)
+        // ------------------------------------
+        window.confirmContentDelete = function(contentId, title, actressSlug) {
+            if (confirm(`ATENÇÃO: Você está prestes a excluir o item de conteúdo "${title}".\n\nTem certeza que deseja continuar?`)) {
+                if (confirm(`CONFIRMAÇÃO FINAL: Se você excluir este item, o arquivo ou o link será removido permanentemente.\n\nPressione OK para DELETAR.`)) {
+                    
+                    // Cria um formulário temporário e submete para a rota de deleção
+                    const tempForm = document.createElement('form');
+                    tempForm.method = 'POST';
+                    tempForm.action = `/admin/actresses/content/delete/${actressSlug}/${contentId}`;
+                    
+                    // Adiciona os dados necessários para o backend (que já estão no formulário de edição)
+                    const filePath = document.querySelector('input[name="filePath"]') || {value: ''};
+                    const thumbnailPath = document.querySelector('input[name="oldThumbnailPath"]') || {value: ''};
+                    
+                    const slugInput = document.createElement('input');
+                    slugInput.type = 'hidden'; slugInput.name = 'actressSlug'; slugInput.value = actressSlug;
+                    tempForm.appendChild(slugInput);
+
+                    const fileInput = document.createElement('input');
+                    fileInput.type = 'hidden'; fileInput.name = 'filePath'; fileInput.value = filePath.value;
+                    tempForm.appendChild(fileInput);
+
+                    const thumbInput = document.createElement('input');
+                    thumbInput.type = 'hidden'; thumbInput.name = 'thumbnailPath'; thumbInput.value = thumbnailPath.value;
+                    tempForm.appendChild(thumbInput);
+
+                    document.body.appendChild(tempForm);
+                    tempForm.submit();
+                    
+                } else {
+                    alert('A exclusão foi cancelada.');
+                }
+            } else {
+                alert('A exclusão foi cancelada.');
+            }
+        }
+    });
+</script>

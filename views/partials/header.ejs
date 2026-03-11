@@ -1,0 +1,127 @@
+<header class="sticky top-0 z-50 bg-black/95 backdrop-blur-sm border-b border-orange-500/20">
+    <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+        <a href="/" class="text-3xl font-extrabold tracking-wider">
+            <span class="bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-amber-400">
+                AllPrivacy
+            </span>
+        </a>
+        <div class="hidden md:flex space-x-8">
+            <a href="/" class="text-gray-300 hover:text-orange-400 font-semibold transition duration-300">Home</a>
+            <% 
+// Verifica se a variável 'user' foi passada e existe
+if (typeof user !== 'undefined' && user) { %>
+                <a href="/dashboard" class="text-gray-300 hover:text-orange-400 transition duration-300">Minha Conta</a>
+            <% } %>
+        </div>
+        
+        <% if (typeof user !== 'undefined' && user) { %>
+            <% 
+                let displayUsername = 'Usuário';
+                if (user.username && typeof user.username === 'string' && user.username.length > 0) {
+                    displayUsername = user.username;
+                } else if (user.email && typeof user.email === 'string') {
+                    displayUsername = user.email.split('@')[0];
+                }
+                const safeUsername = displayUsername;
+
+                const usernameInitial = safeUsername.charAt(0).toUpperCase();
+
+                const safeEmail = user.email || 'email indisponível';
+                
+                const userStatus = user.isPremium ? 'Premium' : 'Básico';
+            %>
+
+            <div class="relative">
+                <button id="profile-menu-toggle" class="flex items-center space-x-3 text-white hover:text-orange-400 transition duration-300 focus:outline-none" onclick="toggleProfileMenu()">
+                    <div class="w-10 h-10 rounded-full bg-orange-600 flex items-center justify-center text-lg font-bold uppercase shadow-md overflow-hidden">
+                        <% if (user.profilePhotoUrl) { %>
+                             <img src="<%= user.profilePhotoUrl %>" alt="Foto de Perfil" class="w-full h-full object-cover">
+                        <% } else { %>
+                             <%= usernameInitial %>
+                        <% } %>
+                    </div>
+                    <span class="text-sm font-semibold hidden sm:block"><%= safeUsername %></span>
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+
+                <div id="profile-menu-dropdown" class="absolute right-0 mt-3 w-56 bg-gray-900 rounded-lg shadow-xl overflow-hidden border border-orange-500/30 opacity-0 invisible transition-all duration-200 transform scale-95 origin-top-right">
+                    
+                    <div class="p-4 border-b border-gray-700 flex items-center space-x-3">
+                        <div class="w-10 h-10 flex-shrink-0 rounded-full bg-orange-600 flex items-center justify-center text-lg font-bold uppercase shadow-md overflow-hidden">
+                            <% if (user.profilePhotoUrl) { %>
+                                 <img src="<%= user.profilePhotoUrl %>" alt="Foto de Perfil" class="w-full h-full object-cover">
+                            <% } else { %>
+                                 <%= usernameInitial %>
+                            <% } %>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-white truncate flex items-center">
+                                <%= safeUsername %>
+                                <span class="<%= user.isPremium ? 'bg-amber-500 text-black' : 'bg-gray-600 text-white' %> text-xs font-bold px-2 py-0.5 ml-2 rounded-full uppercase leading-none">
+                                    <%= userStatus %>
+                                </span>
+                            </p>
+                            <p class="text-xs text-gray-400 truncate"><%= safeEmail %></p>
+                        </div>
+                    </div>
+
+                    <a href="/dashboard" class="block px-4 py-3 text-sm text-gray-300 hover:bg-orange-600 hover:text-white transition duration-200 flex items-center">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        Minha Conta
+                    </a>
+                    
+                    <a href="/logout" class="block px-4 py-3 text-sm text-red-400 hover:bg-red-600 hover:text-white transition duration-200 flex items-center border-t border-gray-700">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        Sair
+                    </a>
+                </div>
+            </div>
+
+            <script>
+                function toggleProfileMenu() {
+                    const menu = document.getElementById('profile-menu-dropdown');
+                    const isVisible = menu.classList.contains('opacity-100');
+                    
+                    if (isVisible) {
+                        // Fechar menu
+                        menu.classList.remove('opacity-100', 'visible', 'scale-100');
+                        menu.classList.add('opacity-0', 'invisible', 'scale-95');
+                    } else {
+                        // Abrir menu
+                        menu.classList.remove('opacity-0', 'invisible', 'scale-95');
+                        menu.classList.add('opacity-100', 'visible', 'scale-100');
+                    }
+                }
+
+                // Fechar menu ao clicar fora
+                document.addEventListener('click', function(event) {
+                    const toggleButton = document.getElementById('profile-menu-toggle');
+                    const dropdown = document.getElementById('profile-menu-dropdown');
+                    
+                    // Verifica se o clique não foi no botão e nem dentro do menu
+                    if (toggleButton && dropdown && !toggleButton.contains(event.target) && !dropdown.contains(event.target)) {
+                        dropdown.classList.remove('opacity-100', 'visible', 'scale-100');
+                        dropdown.classList.add('opacity-0', 'invisible', 'scale-95');
+                    }
+                });
+            </script>
+
+        <% } else { %>
+            <% 
+                // Define o link e o texto padrão (Entrar)
+                let linkHref = '/login';
+                let linkText = 'Entrar'; 
+
+                // Se 'alternateAuthLink' foi passada (como na página de Login para mudar para Criar Conta)
+                if (typeof alternateAuthLink !== 'undefined' && alternateAuthLink && alternateAuthLink.href && alternateAuthLink.text) { 
+                    linkHref = alternateAuthLink.href;
+                    linkText = alternateAuthLink.text;
+                }
+            %>
+            <a href="<%= linkHref %>" 
+               class="px-5 py-2 text-sm font-semibold rounded-full bg-orange-600 hover:bg-orange-700 transition duration-300 shadow-md shadow-orange-500/50">
+                <%= linkText %>
+            </a>
+        <% } %>
+    </nav>
+</header>
